@@ -1,0 +1,5 @@
+!memory-bank/
+__pycache__
+\.venv/
+\.pytest_cache/
+pycache/
