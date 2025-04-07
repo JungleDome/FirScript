@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Set, Tuple
 
 class ScriptType(Enum):
     STRATEGY = "strategy"
@@ -14,31 +13,9 @@ class ScriptMetadata:
     inputs: Dict[str, Any]
     exports: Set[str]
     imports: List[str]
+    custom_imports: List[Tuple[str, str]]
 
-class Script(ABC):
-    def __init__(self, source: str):
+class Script:
+    def __init__(self, source: str, metadata: ScriptMetadata):
         self.source = source
-        self.metadata: Optional[ScriptMetadata] = None
-        
-    @abstractmethod
-    def validate(self) -> bool:
-        """Validate the script against all constraints."""
-        pass
-    
-    @abstractmethod
-    def extract_metadata(self) -> ScriptMetadata:
-        """Extract metadata about the script (type, inputs, exports, imports)."""
-        pass
-    
-    def setup(self, **kwargs) -> None:
-        """Optional setup method for strategy scripts."""
-        pass
-    
-    def process(self, bar: Any) -> None:
-        """Optional process method for strategy scripts."""
-        pass
-    
-    @property
-    def export(self) -> Any:
-        """Export value for indicator scripts."""
-        raise NotImplementedError("Indicator scripts must implement export property") 
+        self.metadata = metadata

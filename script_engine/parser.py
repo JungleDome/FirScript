@@ -1,6 +1,7 @@
 import ast
 from typing import List, Set, Tuple
 from .script import Script, ScriptType, ScriptMetadata
+from typing import Tuple
 
 class ScriptParser:
     def __init__(self):
@@ -54,6 +55,7 @@ class ScriptParser:
     def _extract_metadata(self, tree: ast.AST, script_type: ScriptType) -> ScriptMetadata:
         """Extract metadata from the script."""
         inputs = {}
+        custom_imports = []  # Initialize custom_imports list
         exports = set()
         imports = []
         
@@ -68,12 +70,16 @@ class ScriptParser:
                         # Extract input parameters
                         if node.args and isinstance(node.args[0], ast.Constant):
                             inputs[node.args[0].value] = None
-            elif isinstance(node, ast.Assign):
+            elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "import":
                 for target in node.targets:
                     if isinstance(target, ast.Name):
-                        exports.add(target.id)
+                        if isinstance(target, ast.Name) and isinstance(node.value, ast.Call):
+                            if isinstance(node.value.func, ast.Name) and node.value.func.id == "import":
+                                import_path = node.value.args[0].s
+                                custom_imports.append(("indicator", import_path))
                         
         return ScriptMetadata(
+            custom_imports=custom_imports,  # Add custom imports to metadata
             name="",  # Will be set by the script instance
             type=script_type,
             inputs=inputs,
