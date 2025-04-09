@@ -5,6 +5,23 @@ This file records architectural and implementation decisions using a list format
 
 *
 
+[2025-04-09 09:57:10]
+## Decision
+* Enforce best practice: all mutable state variables must be initialized inside the `setup()` function.
+* Discourage defining mutable state at the global script scope.
+* Add runtime warnings if mutable state is detected outside `setup()`.
+
+## Rationale
+* Improves clarity and maintainability of user scripts.
+* Avoids confusion about variable lifetimes and persistence.
+* Less intrusive than strict parser validation; allows flexibility.
+
+## Implementation Details
+* Updated `docs/scripting_conventions.md` with explicit guidelines and examples.
+* Modified example script `examples/simple_strategy.py` to follow this pattern.
+* Plan to add runtime warnings in the script engine when global mutable state is detected.
+* Did not implement strict parser enforcement to maintain flexibility.
+
 ## Decision
 
 *
@@ -15,7 +32,21 @@ This file records architectural and implementation decisions using a list format
 
 ## Implementation Details
 
-*
+*   [2025-04-08 03:09:36]
+    ## Decision
+    * Finalized script engine core implementation
+    * Established state management architecture
+    * Standardized script conventions
+    
+    ## Rationale
+    * Unified execution model works for both strategies/indicators
+    * Shared context enables state persistence
+    * Clear conventions improve maintainability
+    
+    ## Implementation
+    * Uses Python's exec() with controlled environment
+    * Context merging handles state persistence
+    * Validation ensures script safety
     ---
     [2025-04-02 05:05:20] - Script Engine Parser & Runtime Design
 

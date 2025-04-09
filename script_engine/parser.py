@@ -1,7 +1,6 @@
 import ast
 from typing import List, Set, Tuple
 from .script import Script, ScriptType, ScriptMetadata
-from typing import Tuple
 
 class ScriptParser:
     def __init__(self):
@@ -20,10 +19,8 @@ class ScriptParser:
             # Validate script constraints
             self._validate_script(tree, metadata)
             
-            # Create appropriate script instance
-            script = self._create_script(source, metadata)
-            script.metadata = metadata
-            return script
+            # Create script instance
+            return self._create_script(source, metadata)
             
         except SyntaxError as e:
             raise ValueError(f"Invalid script syntax: {str(e)}")
@@ -55,7 +52,7 @@ class ScriptParser:
     def _extract_metadata(self, tree: ast.AST, script_type: ScriptType) -> ScriptMetadata:
         """Extract metadata from the script."""
         inputs = {}
-        custom_imports = []  # Initialize custom_imports list
+        custom_imports = []
         exports = set()
         imports = []
         
@@ -67,19 +64,17 @@ class ScriptParser:
             elif isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if node.func.attr.startswith("input."):
-                        # Extract input parameters
                         if node.args and isinstance(node.args[0], ast.Constant):
                             inputs[node.args[0].value] = None
             elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "import":
                 for target in node.targets:
                     if isinstance(target, ast.Name):
-                        if isinstance(target, ast.Name) and isinstance(node.value, ast.Call):
-                            if isinstance(node.value.func, ast.Name) and node.value.func.id == "import":
-                                import_path = node.value.args[0].s
-                                custom_imports.append(("indicator", import_path))
-                        
+                        if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == "import":
+                            import_path = node.value.args[0].s
+                            custom_imports.append(("indicator", import_path))
+                            
         return ScriptMetadata(
-            custom_imports=custom_imports,  # Add custom imports to metadata
+            custom_imports=custom_imports,
             name="",  # Will be set by the script instance
             type=script_type,
             inputs=inputs,
@@ -111,13 +106,26 @@ class ScriptParser:
                         if isinstance(child.func, ast.Attribute):
                             if child.func.attr.startswith("input."):
                                 raise ValueError("Input functions cannot be used inside process()")
+
+        # Warn about any variable assignments at module level (outside setup)
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        var_name = target.id
+                        # Ignore ALL_CAPS constants only
+                        if var_name.isupper():
+                            continue
+                        # Warn for all other assignments, including inputs
+                        print(f"[ScriptParser Warning] Variable '{var_name}' assigned at global scope. Move all variable declarations inside setup() or process().")
                                 
     def _validate_indicator_script(self, tree: ast.AST) -> None:
         """Validate indicator script constraints."""
         # Check for single export
         exports = {node.targets[0].id for node in ast.walk(tree)
                   if isinstance(node, ast.Assign)
-                  and isinstance(node.targets[0], ast.Name)}
+                  and isinstance(node.targets[0], ast.Name)
+                  and node.targets[0].id == 'export'}
         if len(exports) != 1:
             raise ValueError("Indicator script must have exactly one export")
             
@@ -129,6 +137,5 @@ class ScriptParser:
                         raise ValueError("Indicator scripts cannot use strategy functions")
                         
     def _create_script(self, source: str, metadata: ScriptMetadata) -> Script:
-        """Create appropriate script instance based on type."""
-        # This is a placeholder - actual implementation will create proper script instances
-        return Script(source) 
+        """Create script instance with source and metadata."""
+        return Script(source, metadata)
