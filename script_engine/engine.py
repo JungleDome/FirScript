@@ -1,14 +1,16 @@
 from typing import Any, Dict, Optional
 import pandas as pd
+
+from script_engine.namespaces.chart import ChartNamespace
+from script_engine.namespaces.color import ColorNamespace
+from script_engine.namespaces.input import InputNamespace
+from script_engine.namespaces.strategy import StrategyNamespace
+from script_engine.namespaces.ta import TANamespace
 from .parser import ScriptParser
 from .runtime import RuntimeEnvironment, RuntimeExecutionInput
 from .script import ScriptType
 from .exceptions import ScriptEngineError
-from .namespaces import (
-    TANamespace, InputNamespace,
-    ChartNamespace, ColorNamespace,
-    StrategyNamespace
-)
+
 
 class ScriptEngine:
     """High-level interface for script execution."""
@@ -58,8 +60,8 @@ class ScriptEngine:
             return self.runtime.execute_script(
                 self.script,
                 execution_input=RuntimeExecutionInput(
-                    current_bar=bars_df.iloc[-1:],  # Last row as DataFrame
-                    all_bar=bars_df.iloc[:-1]       # All except last row
+                    current_bar=bars_df.iloc[-1],  # Last row as DataFrame
+                    all_bar=bars_df       # All except last row
                 )
             )
         except Exception as e:
