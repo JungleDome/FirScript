@@ -19,12 +19,11 @@ class RuntimeState:
 class RuntimeEnvironment:
     """Manages script execution context with shared state."""
     
-    def __init__(self, column_mapping: Dict[str, str], inputs_override: Dict[str, Any] = {}):
+    def __init__(self, column_mapping: Dict[str, str]):
         self.registered_namespaces: Dict[str, Any] = {}
         self.imported_indicators: Dict[str, Any] = {}
         self.runtime_state: Optional[RuntimeState] = None
         self.column_mapping: Dict[str, str] = column_mapping
-        self.inputs: Dict[str, Any] = inputs_override
         self.shared_context: Dict[str, Any] = {}
         self.setup_executed: Set[str] = set()
 
@@ -45,13 +44,9 @@ class RuntimeEnvironment:
             # Create execution environment
             env = self._create_execution_environment()
             
-            # Prepare script inputs and current bar
-            script_inputs = {**script.metadata.inputs, **self.inputs}
-            
             # Inject execution-specific items
             env.update({
-                'data': self.runtime_state,
-                **script_inputs
+                'data': self.runtime_state
             })
 
             # Execute the script
@@ -73,7 +68,7 @@ class RuntimeEnvironment:
                     self.shared_context['process']()
                     
             # Update shared context (excluding injected items)
-            keys_to_exclude = set(self.registered_namespaces.keys()) | {'import', 'data'} | set(script_inputs.keys())
+            keys_to_exclude = set(self.registered_namespaces.keys()) | {'import', 'data'}
             for key, value in env.items():
                 if key not in keys_to_exclude:
                     self.shared_context[key] = value

@@ -1,23 +1,38 @@
 from typing import Any
 import pandas as pd
+import talipp.indicators as ta
+
 
 class TANamespace:
     """Technical Analysis namespace implementation."""
-    
+
+    @staticmethod
+    def sma(series: pd.Series, length: int) -> float:
+        """Calculate Simple Moving Average."""
+        return ta.SMA(period=length, input_values=series.to_list())
+
     @staticmethod
     def ema(series: pd.Series, length: int) -> float:
         """Calculate Exponential Moving Average."""
-        return series.ewm(span=length).mean().iloc[-1]
+        return ta.EMA(period=length, input_values=series.to_list())
 
-    @staticmethod 
+    @staticmethod
     def rsi(series: pd.Series, length: int) -> float:
         """Calculate Relative Strength Index."""
-        delta = series.diff()
-        gain = delta.where(delta > 0, 0)
-        loss = -delta.where(delta < 0, 0)
-        
-        avg_gain = gain.rolling(window=length).mean()
-        avg_loss = loss.rolling(window=length).mean()
-        
-        rs = avg_gain / avg_loss
-        return 100 - (100 / (1 + rs.iloc[-1]))
+        return ta.RSI(period=length, input_values=series.to_list())
+
+    @staticmethod
+    def atr(df: pd.DataFrame, length: int) -> float:
+        """Calculate Average True Range."""
+
+        ohlcv_list = [
+            ta.OHLCV(open=o, high=h, low=l, close=c, volume=v)
+            for o, h, l, c, v in zip(
+                df["open"], df["high"], df["low"], df["close"], df["volume"]
+            )
+        ]
+
+        return ta.ATR(
+            period=length,
+            input_values=ohlcv_list
+        )

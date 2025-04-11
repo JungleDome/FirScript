@@ -96,13 +96,19 @@ export = sma
 3. **strategy** - Trading actions:
    - long(), short(), close()
 
-4. **current_bar** - Current bar data:
-   - Contains OHLCV fields as Series
+4. **data** - Bar data:
+   - current: Current OHLCV data as per current candlestick
+   - all: All OHLCV data from start to current
+
+5. **chart** - Chart actions:
+   - plot()
+
+6. **color** - Color enums:
+   - red, blue, green, etc.
 
 ## Best Practices
 
 1. Keep scripts focused on a single purpose
 2. Document input parameters
 3. Initialize state in setup()
-4. Avoid complex logic in top-level scope
-5. Use descriptive variable names
+4. Use descriptive variable names

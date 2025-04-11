@@ -8,17 +8,20 @@ class ScriptType(Enum):
 
 @dataclass
 class ScriptMetadata:
+    id: str
     name: str
     type: ScriptType
     inputs: Dict[str, Any]
     exports: Set[str]
     imports: List[str]
-    custom_imports: List[Tuple[str, str]]
+    custom_imports: List[str]
 
 class Script:
-    id: str
+    
+    @property
+    def id(self) -> str:
+        return self.metadata.id
     
     def __init__(self, source: str, metadata: ScriptMetadata):
         self.source = source
         self.metadata = metadata
-        self.id = metadata.name or hash(source)

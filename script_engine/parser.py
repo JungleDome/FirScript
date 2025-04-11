@@ -1,5 +1,7 @@
 import ast
 from typing import List, Set, Tuple
+
+from script_engine.exceptions.parsing_specific import StrategyGlobalVariableError
 from .script import Script, ScriptType, ScriptMetadata
 
 class ScriptParser:
@@ -23,31 +25,50 @@ class ScriptParser:
             return self._create_script(source, metadata)
             
         except SyntaxError as e:
-            raise ValueError(f"Invalid script syntax: {str(e)}")
+            from script_engine.exceptions.parsing import ScriptParsingError
+            raise ScriptParsingError(f"Invalid script syntax: {str(e)}")
             
     def _determine_script_type(self, tree: ast.AST) -> ScriptType:
-        """Determine if the script is a strategy or indicator."""
-        has_strategy_calls = False
+        """Determine if the script is a strategy or indicator based on function definitions.
+
+        A script is considered a strategy if it contains both setup() and process() functions.
+        A script is considered an indicator if it assigns to an 'export' variable.
+
+        Raises:
+            ConflictingScriptTypeError: If script has both strategy and indicator characteristics
+            MissingScriptTypeError: If script has neither strategy nor indicator characteristics
+        """
+        has_setup = False
+        has_process = False
         has_export = False
-        
+
         for node in ast.walk(tree):
-            if isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Attribute):
-                    if node.func.attr in {"long", "short", "close", "position"}:
-                        has_strategy_calls = True
+            if isinstance(node, ast.FunctionDef):
+                if node.name == "setup":
+                    has_setup = True
+                elif node.name == "process":
+                    has_process = True
             elif isinstance(node, ast.Assign):
                 for target in node.targets:
                     if isinstance(target, ast.Name) and target.id == "export":
                         has_export = True
-                        
-        if has_strategy_calls and has_export:
-            raise ValueError("Script cannot be both a strategy and an indicator")
-        elif has_strategy_calls:
+
+        is_strategy = has_setup and has_process
+
+        if is_strategy and has_export:
+            from script_engine.exceptions.parsing_specific import ConflictingScriptTypeError
+            raise ConflictingScriptTypeError(
+                "Script cannot be both a strategy (has setup/process) and an indicator (has export)"
+            )
+        elif is_strategy:
             return ScriptType.STRATEGY
         elif has_export:
             return ScriptType.INDICATOR
         else:
-            raise ValueError("Script must be either a strategy or an indicator")
+            from script_engine.exceptions.parsing_specific import MissingScriptTypeError
+            raise MissingScriptTypeError(
+                "Script must be either a strategy (with setup/process functions) or an indicator (with export variable)"
+            )
             
     def _extract_metadata(self, tree: ast.AST, script_type: ScriptType) -> ScriptMetadata:
         """Extract metadata from the script."""
@@ -66,20 +87,27 @@ class ScriptParser:
                     if node.func.attr.startswith("input."):
                         if node.args and isinstance(node.args[0], ast.Constant):
                             inputs[node.args[0].value] = None
-            elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "import":
+            elif isinstance(node, ast.Assign):
+                # Detect custom import assignments
+                if isinstance(node.targets[0], ast.Name) and node.targets[0].id == "import":
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == "import":
+                                import_path = node.value.args[0].s
+                                custom_imports.append(import_path)
+                # Detect export assignments
                 for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == "import":
-                            import_path = node.value.args[0].s
-                            custom_imports.append(("indicator", import_path))
-                            
+                    if isinstance(target, ast.Name) and target.id.startswith("export"):
+                        exports.add(target.id)
+
         return ScriptMetadata(
             custom_imports=custom_imports,
             name="",  # Will be set by the script instance
             type=script_type,
             inputs=inputs,
             exports=exports,
-            imports=imports
+            imports=imports,
+            id=hash(tree)  # Unique ID based on the AST hash
         )
         
     def _validate_script(self, tree: ast.AST, metadata: ScriptMetadata) -> None:
@@ -96,7 +124,8 @@ class ScriptParser:
                     if isinstance(node, ast.FunctionDef)}
         missing = self.required_strategy_functions - functions
         if missing:
-            raise ValueError(f"Strategy script missing required functions: {missing}")
+            from script_engine.exceptions.parsing_specific import MissingRequiredFunctionsError
+            raise MissingRequiredFunctionsError(f"Strategy script missing required functions: {missing}")
             
         # Check for input usage in process function
         for node in ast.walk(tree):
@@ -104,8 +133,9 @@ class ScriptParser:
                 for child in ast.walk(node):
                     if isinstance(child, ast.Call):
                         if isinstance(child.func, ast.Attribute):
-                            if child.func.attr.startswith("input."):
-                                raise ValueError("Input functions cannot be used inside process()")
+                            if isinstance(child.func.value, ast.Name) and child.func.value.id == "input":
+                                from script_engine.exceptions.parsing_specific import InvalidInputUsageError
+                                raise InvalidInputUsageError("Input functions cannot be used inside process()")
 
         # Warn about any variable assignments at module level (outside setup)
         for node in tree.body:
@@ -117,7 +147,7 @@ class ScriptParser:
                         if var_name.isupper():
                             continue
                         # Warn for all other assignments, including inputs
-                        print(f"[ScriptParser Warning] Variable '{var_name}' assigned at global scope. Move all variable declarations inside setup() or process().")
+                        raise StrategyGlobalVariableError(f"Variable '{var_name}' assigned at global scope. Move all variable declarations inside setup() or process().")
                                 
     def _validate_indicator_script(self, tree: ast.AST) -> None:
         """Validate indicator script constraints."""
@@ -125,16 +155,18 @@ class ScriptParser:
         exports = {node.targets[0].id for node in ast.walk(tree)
                   if isinstance(node, ast.Assign)
                   and isinstance(node.targets[0], ast.Name)
-                  and node.targets[0].id == 'export'}
+                  and node.targets[0].id.startswith('export')}
         if len(exports) != 1:
-            raise ValueError("Indicator script must have exactly one export")
+            from script_engine.exceptions.parsing_specific import MultipleExportsError
+            raise MultipleExportsError("Indicator script must have exactly one export")
             
         # Check for strategy function calls
         for node in ast.walk(tree):
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if node.func.attr in {"long", "short", "close", "position"}:
-                        raise ValueError("Indicator scripts cannot use strategy functions")
+                        from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
+                        raise StrategyFunctionInIndicatorError("Indicator scripts cannot use strategy functions")
                         
     def _create_script(self, source: str, metadata: ScriptMetadata) -> Script:
         """Create script instance with source and metadata."""

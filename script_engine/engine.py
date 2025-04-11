@@ -17,18 +17,17 @@ class ScriptEngine:
         self.parser = ScriptParser()
         self.script_source = script_source
         self.runtime = RuntimeEnvironment(
-            column_mapping=column_mapping or {},
-            inputs_override=inputs_override or {}
+            column_mapping=column_mapping or {}
         )
-        self._init_default_namespaces()
+        self._init_default_namespaces(inputs_override)
         
         # Parse script
         self.script = self.parser.parse(script_source)
         
-    def _init_default_namespaces(self) -> None:
+    def _init_default_namespaces(self, inputs_override: Dict[str, Any]) -> None:
         """Initialize the default namespaces."""
         self.runtime.register_namespace("ta", TANamespace())
-        self.runtime.register_namespace("input", InputNamespace({}))
+        self.runtime.register_namespace("input", InputNamespace(inputs_override or {}))
         self.runtime.register_namespace("chart", ChartNamespace())
         self.runtime.register_namespace("color", ColorNamespace())
         self.runtime.register_namespace("strategy", StrategyNamespace())
