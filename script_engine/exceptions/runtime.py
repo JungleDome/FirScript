@@ -11,3 +11,7 @@ class ScriptRuntimeError(ScriptEngineError):
 class NamespaceError(ScriptRuntimeError):
     """Raised for namespace-related errors."""
     pass
+
+class ScriptNotFoundError(ScriptEngineError):
+    """Raised when a script definition cannot be found."""
+    pass

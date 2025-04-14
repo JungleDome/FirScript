@@ -85,26 +85,33 @@ export = sma
 - Cannot use strategy.* namespace
 - Export can be any Python object
 
-## Provided Namespaces
+## Namespace Design Principles
 
-1. **ta** - Technical Analysis:
-   - sma(), ema(), rsi(), etc.
-   
-2. **input** - Input management:
-   - int(), float(), bool(), string()
+1. **Independence**
+   - Namespaces are self-contained and stateless (except for their own internal state)
+   - Namespaces cannot access script variables directly
+   - All required data must be passed explicitly as parameters
 
-3. **strategy** - Trading actions:
-   - long(), short(), close()
+2. **Available Namespaces**
 
-4. **data** - Bar data:
-   - current: Current OHLCV data as per current candlestick
-   - all: All OHLCV data from start to current
+- **ta**: Technical analysis functions
+  - Example: `ta.sma(data.current.close, length=20)`
+  - All indicators require explicit price/volume data
 
-5. **chart** - Chart actions:
-   - plot()
+- **input**: Input configuration
+  - Example: `input.int("period", 14)`
+  - Returns configured values, does not store state
 
-6. **color** - Color enums:
-   - red, blue, green, etc.
+- **chart**: Visualization functions
+  - Example: `chart.plot(my_sma, color=color.blue)`
+  - All values must be passed explicitly
+
+- **color**: Color constants
+  - Pure constants, no state or script interaction
+
+- **strategy**: Trading actions
+  - Example: `strategy.long(data.current.close, size=1.0)`
+  - Maintains only internal position/order state
 
 ## Best Practices
 

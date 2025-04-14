@@ -1,4 +1,5 @@
 import ast
+from typing import Any, Dict, List, Set, Tuple # Added Dict
 from typing import List, Set, Tuple
 
 from script_engine.exceptions.parsing_specific import StrategyGlobalVariableError
@@ -9,14 +10,14 @@ class ScriptParser:
         self.required_strategy_functions = {"setup", "process"}
         self.allowed_namespaces = {"ta", "input", "chart", "color", "strategy"}
         
-    def parse(self, source: str) -> Script:
+    def parse(self, source: str, script_id: str) -> Script:
         """Parse and validate a script source."""
         try:
             tree = ast.parse(source)
             script_type = self._determine_script_type(tree)
             
             # Extract metadata
-            metadata = self._extract_metadata(tree, script_type)
+            metadata = self._extract_metadata(tree, script_type, script_id)
             
             # Validate script constraints
             self._validate_script(tree, metadata)
@@ -70,44 +71,55 @@ class ScriptParser:
                 "Script must be either a strategy (with setup/process functions) or an indicator (with export variable)"
             )
             
-    def _extract_metadata(self, tree: ast.AST, script_type: ScriptType) -> ScriptMetadata:
+    def _extract_metadata(self, tree: ast.AST, script_type: ScriptType, script_id: str) -> ScriptMetadata:
         """Extract metadata from the script."""
         inputs = {}
-        custom_imports = []
         exports = set()
-        imports = []
+        # Dictionary to store custom imports: {alias: definition_id}
+        custom_imports: Dict[str, str] = {}
         
         for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                imports.extend(alias.name for alias in node.names)
-            elif isinstance(node, ast.ImportFrom):
-                imports.append(node.module)
-            elif isinstance(node, ast.Call):
+            # Remove standard Python import handling, we use custom import_script
+            # if isinstance(node, ast.Import):
+            #     imports.extend(alias.name for alias in node.names)
+            # elif isinstance(node, ast.ImportFrom):
+            #     imports.append(node.module)
+            if isinstance(node, ast.Call): # Changed from elif
                 if isinstance(node.func, ast.Attribute):
                     if node.func.attr.startswith("input."):
                         if node.args and isinstance(node.args[0], ast.Constant):
                             inputs[node.args[0].value] = None
             elif isinstance(node, ast.Assign):
-                # Detect custom import assignments
-                if isinstance(node.targets[0], ast.Name) and node.targets[0].id == "import":
-                    for target in node.targets:
-                        if isinstance(target, ast.Name):
-                            if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == "import":
-                                import_path = node.value.args[0].s
-                                custom_imports.append(import_path)
+                # Detect custom import assignments like: my_sma = import_script('indicators/sma.py')
+                if isinstance(node.value, ast.Call) and \
+                   isinstance(node.value.func, ast.Name) and \
+                   node.value.func.id == 'import_script' and \
+                   len(node.targets) == 1 and \
+                   isinstance(node.targets[0], ast.Name) and \
+                   len(node.value.args) == 1 and \
+                   isinstance(node.value.args[0], ast.Constant) and \
+                   isinstance(node.value.args[0].value, str):
+                    
+                    alias = node.targets[0].id
+                    definition_id = node.value.args[0].value
+                    if alias in custom_imports:
+                         # Handle potential duplicate aliases if needed (e.g., raise error or log warning)
+                         # Using logger requires importing logging
+                         # logger.warning(f"Duplicate import alias '{alias}' detected. Overwriting previous import.")
+                         pass # Or raise an error
+                    custom_imports[alias] = definition_id
                 # Detect export assignments
                 for target in node.targets:
                     if isinstance(target, ast.Name) and target.id.startswith("export"):
                         exports.add(target.id)
 
         return ScriptMetadata(
-            custom_imports=custom_imports,
-            name="",  # Will be set by the script instance
+            id=script_id,
+            name=script_id,
             type=script_type,
             inputs=inputs,
             exports=exports,
-            imports=imports,
-            id=hash(tree)  # Unique ID based on the AST hash
+            imports=custom_imports # Use the correct variable name
         )
         
     def _validate_script(self, tree: ast.AST, metadata: ScriptMetadata) -> None:

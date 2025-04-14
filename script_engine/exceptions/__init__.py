@@ -7,7 +7,7 @@ from .parsing_specific import (
     InvalidInputUsageError,
     ScriptValidationError
 )
-from .runtime import ScriptRuntimeError, NamespaceError
+from .runtime import ScriptRuntimeError, NamespaceError, ScriptNotFoundError
 
 __all__ = [
     'ScriptEngineError',
@@ -16,5 +16,6 @@ __all__ = [
     'InvalidInputUsageError',
     'ScriptValidationError',
     'ScriptRuntimeError',
-    'NamespaceError'
+    'NamespaceError',
+    'ScriptNotFoundError'
 ]

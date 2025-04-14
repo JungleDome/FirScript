@@ -68,8 +68,10 @@ This document outlines the design for the Python-based script engine for TradePi
         *   Store the returned value in `self.imported_indicators[name]`.
         *   Return the value.
 *   **Namespace Implementation:**
-    *   The `_create_X_namespace` methods should accept a reference to the backtesting engine's context/state.
-    *   Implement the actual logic (e.g., `ta.ema` accesses historical data from the context, `strategy.long` interacts with the order execution module).
+    *   All namespaces must be self-contained and independent
+    *   Namespaces must not access script execution context or variables
+    *   All required data must be passed explicitly as parameters
+    *   Namespaces may maintain their own internal state (e.g., strategy's position tracking)
 
 ### 5.4. Execution Flow
 
