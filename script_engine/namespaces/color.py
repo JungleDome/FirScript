@@ -1,4 +1,7 @@
-class ColorNamespace:
+from ..namespaces.base import BaseNamespace
+
+
+class ColorNamespace(BaseNamespace):
     """Provides color constants and utilities."""
     
     def __init__(self):

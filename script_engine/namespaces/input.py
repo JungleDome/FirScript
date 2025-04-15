@@ -1,6 +1,7 @@
 from typing import Any, Dict
+from ..namespaces.base import BaseNamespace
 
-class InputNamespace:
+class InputNamespace(BaseNamespace):
     """Handles script input parameters."""
     
     def __init__(self, inputs: Dict[str, Any]):

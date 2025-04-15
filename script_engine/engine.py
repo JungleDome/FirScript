@@ -1,4 +1,5 @@
 from typing import Any, Dict, Optional
+from numpy import True_
 import pandas as pd
 import logging
 
@@ -27,7 +28,8 @@ class ScriptEngine:
                  script_sources: Dict[str, str],
                  main_script_definition_id: str,
                  column_mapping: Dict[str, str] = None,
-                 inputs_override: Dict[str, Any] = None):
+                 inputs_override: Dict[str, Any] = None,
+                 generate_output_after_run: bool = True):
         """
         Initializes the Script Engine.
 
@@ -37,6 +39,7 @@ class ScriptEngine:
             main_script_definition_id: The definition_id of the script to be executed as the main entry point.
             column_mapping: Optional mapping for renaming DataFrame columns (e.g., {'Open': 'open'}).
             inputs_override: Optional dictionary to override default input values defined in scripts.
+            generate_output_after_run: Whether to automatically generate namespace outputs after each run.
         """
         if not script_sources:
             raise ScriptEngineError("At least one script source must be provided.")
@@ -60,7 +63,8 @@ class ScriptEngine:
         # Initialize the runtime environment with all parsed script definitions
         self.runtime = RuntimeEnvironment(
             script_definitions=self.script_definitions,
-            column_mapping=column_mapping
+            column_mapping=column_mapping,
+            generate_output_after_run=generate_output_after_run
         )
 
         # Initialize and register default namespaces
@@ -143,6 +147,15 @@ class ScriptEngine:
         """Resets the runtime environment, clearing all state."""
         logger.info("Resetting script engine runtime state.")
         self.runtime.reset()
+
+    def generate_outputs(self) -> Dict[str, Any]:
+        """Manually generate outputs from all namespaces that support output generation.
+
+        Returns:
+            A dictionary mapping namespace names to their generated outputs.
+        """
+        logger.debug("Manually generating namespace outputs.")
+        return self.runtime.generate_namespace_outputs()
 
     # Potential future methods:
     # def get_script_metadata(self, definition_id: str) -> Optional[ScriptMetadata]:

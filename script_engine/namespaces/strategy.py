@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Any, Dict, override
 
-class StrategyNamespace:
+from ..namespaces.base import BaseNamespace
+
+class StrategyNamespace(BaseNamespace):
     """Handles strategy order management and position tracking."""
-    
+
     def __init__(self):
         self._orders = []
         self._position = None
@@ -17,7 +19,7 @@ class StrategyNamespace:
     def short(self, **kwargs) -> None:
         """Enter a short position."""
         self._orders.append({
-            'type': 'short', 
+            'type': 'short',
             'options': kwargs
         })
 
@@ -34,4 +36,16 @@ class StrategyNamespace:
             'size': 0,
             'entry_price': 0,
             'profit': 0
+        }
+
+    @override
+    def generate_output(self) -> Dict[str, Any]:
+        """Generate the final output for this namespace after script execution.
+
+        Returns:
+            A dictionary containing the strategy's current state and orders.
+        """
+        return {
+            'position': self.position(),
+            'orders': self._orders
         }

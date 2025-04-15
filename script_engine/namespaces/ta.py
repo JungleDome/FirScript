@@ -1,9 +1,10 @@
 from typing import Any
 import pandas as pd
 import talipp.indicators as ta
+from ..namespaces.base import BaseNamespace
 
 
-class TANamespace:
+class TANamespace(BaseNamespace):
     """Technical Analysis namespace implementation."""
 
     @staticmethod

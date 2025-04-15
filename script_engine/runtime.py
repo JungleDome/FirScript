@@ -12,6 +12,7 @@ from .execution_input import ExecutionInputBase
 from .exceptions import ScriptRuntimeError, ScriptNotFoundError
 from .script import Script, ScriptType
 from .script_importer import ScriptImporter
+from .namespaces.base import BaseNamespace
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +22,15 @@ class RuntimeEnvironment:
 
     def __init__(self,
                  script_definitions: Dict[str, Script],
-                 column_mapping: Dict[str, str] = None):
+                 column_mapping: Dict[str, str] = None,
+                 generate_output_after_run: bool = True):
         """
         Initializes the runtime environment.
 
         Args:
             script_definitions: A dictionary mapping definition_id (e.g., path) to Script objects.
             column_mapping: Optional mapping for renaming DataFrame columns.
+            generate_output_after_run: Whether to automatically generate namespace outputs after each run.
         """
         self.script_definitions: Dict[str, Script] = script_definitions
         self.column_mapping: Dict[str, str] = column_mapping or {}
@@ -35,7 +38,8 @@ class RuntimeEnvironment:
         self.execution_contexts: Dict[str, ExecutionContext] = {}  # instance_id -> context
         self._current_run_data: Optional[ExecutionInputBase] = None  # Holds processed data during a run() call
         self._setup_executed: Set[str] = set()  # Tracks instance_ids where setup ran
-        
+        self.generate_output_after_run: bool = generate_output_after_run
+
         # Initialize the script importer
         self.script_importer = ScriptImporter(self)
 
@@ -119,12 +123,18 @@ class RuntimeEnvironment:
             # Inject current data into the main context for this run
             main_context.globals['data'] = self._current_run_data  # Inject the processed data object
 
+            # Variable to store the result from library scripts
             result = None
+
             try:
                 if main_script_def.type == ScriptType.STRATEGY:
-                    result = self._run_strategy(main_instance_id, main_context)
+                    self._run_strategy(main_instance_id, main_context)
                 elif main_script_def.type == ScriptType.INDICATOR:
-                    result = self._run_indicator(main_instance_id, main_context)
+                    self._run_indicator(main_instance_id, main_context)
+                elif main_script_def.type == ScriptType.LIBRARY:
+                    result = self._run_library(main_instance_id, main_context)
+                else:
+                    raise ScriptRuntimeError(f"Unknown script type: {main_script_def.type}")
             except Exception as e:
                 # Catch errors during setup/process/update calls
                 raise ScriptRuntimeError(f"Runtime error during execution of script '{main_script_definition_id}' (instance: {main_instance_id}): {str(e)}") from e
@@ -136,18 +146,26 @@ class RuntimeEnvironment:
         # Persist state: The state is implicitly persisted in the main_context.globals dictionary
         # stored in self.execution_contexts.
 
-        return result
-        
-    def _run_strategy(self, instance_id: str, context: ExecutionContext) -> Any:
+        # For library scripts, return the export value
+        if main_script_def.type == ScriptType.LIBRARY and result is not None:
+            return result
+
+        # Generate outputs from namespaces if configured
+        if self.generate_output_after_run:
+            namespace_outputs = self.generate_namespace_outputs()
+            if namespace_outputs:
+                return namespace_outputs
+
+        # Return None if no namespace outputs are generated and not a library script
+        return None
+
+    def _run_strategy(self, instance_id: str, context: ExecutionContext) -> None:
         """
         Run a strategy script.
-        
+
         Args:
             instance_id: The instance ID of the strategy
             context: The execution context for the strategy
-            
-        Returns:
-            The result of the strategy execution
         """
         # Execute setup() once per instance
         if instance_id not in self._setup_executed:
@@ -162,30 +180,69 @@ class RuntimeEnvironment:
         if 'process' in context.globals and callable(context.globals['process']):
             logger.debug(f"Calling process() for instance '{instance_id}'")
             # Assuming process uses the 'data' global
-            return context.globals['process']()
+            context.globals['process']()
         else:
             raise ScriptRuntimeError(f"Strategy script '{context.definition_id}' must define a process() function.")
-            
-    def _run_indicator(self, instance_id: str, context: ExecutionContext) -> Any:
+
+    def _run_indicator(self, instance_id: str, context: ExecutionContext) -> None:
         """
         Run an indicator script.
-        
+
         Args:
             instance_id: The instance ID of the indicator
             context: The execution context for the indicator
-            
-        Returns:
-            The result of the indicator execution
         """
-        # For an indicator run as the main script, we might just expect it to calculate
-        # and assign to 'export' during the initial exec.
-        # Or, if it needs per-bar updates, call a conventional function like 'update()' or 'calc()'.
-        if 'update' in context.globals and callable(context.globals['update']):
-            logger.debug(f"Calling update() for indicator instance '{instance_id}'")
-            context.globals['update']()  # Assuming it uses 'data' global
+        # Execute setup() once per instance (same as strategy)
+        if instance_id not in self._setup_executed:
+            if 'setup' in context.globals and callable(context.globals['setup']):
+                logger.debug(f"Calling setup() for indicator instance '{instance_id}'")
+                context.globals['setup']()
+                self._setup_executed.add(instance_id)
+            else:
+                raise ScriptRuntimeError(f"Indicator script '{context.definition_id}' does not have a setup() function.")
 
-        # The result is the exported value after execution/update
-        return self.script_importer._get_exports_proxy(context)
+        # Execute process() on each run (same as strategy)
+        if 'process' in context.globals and callable(context.globals['process']):
+            logger.debug(f"Calling process() for indicator instance '{instance_id}'")
+            context.globals['process']()
+        else:
+            raise ScriptRuntimeError(f"Indicator script '{context.definition_id}' must define a process() function.")
+
+    def _run_library(self, instance_id: str, context: ExecutionContext) -> Any:
+        """
+        Run a library script.
+
+        Args:
+            instance_id: The instance ID of the library
+            context: The execution context for the library
+
+        Returns:
+            The value of the export variable
+        """
+        # Library scripts are primarily used for importing, so we don't need to execute any functions
+        # The export variable should already be defined during the initial exec
+        logger.debug(f"Running library script instance '{instance_id}'")
+
+        # Return the export variable
+        if 'export' in context.globals:
+            return context.globals['export']
+        else:
+            raise ScriptRuntimeError(f"Library script '{context.definition_id}' does not have an export variable.")
+
+    def generate_namespace_outputs(self) -> Dict[str, Any]:
+        """
+        Generate outputs from all namespaces that support output generation.
+
+        Returns:
+            A dictionary mapping namespace names to their generated outputs.
+        """
+        outputs = {}
+        for name, namespace in self.registered_namespaces.items():
+            if isinstance(namespace, BaseNamespace):
+                output = namespace.generate_output()
+                if output is not None:
+                    outputs[name] = output
+        return outputs
 
     def reset(self) -> None:
         """Clears all execution contexts and state."""
