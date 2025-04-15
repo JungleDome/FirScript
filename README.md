@@ -4,12 +4,12 @@ A Python-based backtesting engine with a custom scripting system inspired by Tra
 
 ## Features
 
-- Support for both strategy and indicator scripts
+- Support for strategy, indicator, and library scripts
 - Built-in technical analysis functions
 - Configurable inputs
 - Chart plotting capabilities
 - Strategy execution with order management
-- Indicator script importing
+- Script importing and code reuse
 
 ## Project Structure
 
@@ -20,23 +20,33 @@ script_engine/
 └── runtime.py     # Script execution environment
 
 examples/
-├── simple_strategy.py  # Example strategy script
-└── sma_indicator.py    # Example indicator script
+├── simple_strategy.py     # Example strategy script
+├── simple_indicator_new.py # Example indicator script (new format)
+├── simple_library.py      # Example library script
+└── library_usage_example.py # Example of using a library
 ```
 
 ## Script Types
 
 ### Strategy Scripts
-- Must contain `setup()` and `process(bar)` functions
-- Can use all available namespaces
+- Must contain `setup()` and `process()` functions
+- Can use all available namespaces including the strategy namespace
 - Cannot use `input` functions inside `process()`
 - Must use at least one `strategy` function
 
 ### Indicator Scripts
-- Must export exactly one value (named `export`)
+- Must contain `setup()` and `process()` functions (same as strategy)
 - Cannot use `strategy` functions
 - Can use `chart.plot()` for visualization
-- Can be imported by strategy scripts
+- Can be imported by other scripts
+
+### Library Scripts
+- Must export exactly one value (named `export`)
+- Cannot have `setup()` or `process()` functions
+- Cannot use `strategy` functions
+- The value of the export variable is returned when the script is executed
+- Primarily used for code reuse across scripts
+- Export can be any Python object (function, dictionary, class, etc.)
 
 ## Available Namespaces
 
@@ -75,7 +85,7 @@ def setup():
 def process(bar):
     fast_ma = ta.sma(bar.close, setup.fast_length)
     slow_ma = ta.sma(bar.close, setup.slow_length)
-    
+
     if fast_ma > slow_ma:
         strategy.long()
     elif fast_ma < slow_ma:
@@ -100,4 +110,4 @@ export = calculate_sma(bar.close, 14)
 
 ## License
 
-MIT License 
+MIT License
