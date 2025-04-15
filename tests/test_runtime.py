@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 from script_engine.exceptions.parsing_specific import MissingScriptTypeError, StrategyGlobalVariableError
 from script_engine.exceptions.runtime import ScriptRuntimeError
-from script_engine.runtime import RuntimeExecutionInput
+from script_engine.runtime import ExecutionInputBase
 from script_engine.script import ScriptType
 
 
@@ -12,7 +12,7 @@ def test_When_ExecuteValidIndicatorScript_Expect_ResultReturned(
     script = parser.parse(valid_indicator_script)
     result = runtime.execute_script(
         script,
-        execution_input=RuntimeExecutionInput(
+        execution_input=ExecutionInputBase(
             current_bar=sample_ohlcv_data.iloc[-1], all_bar=sample_ohlcv_data
         ),
     )
@@ -75,7 +75,7 @@ def process():
     # Execute with input override
     runtime.execute_script(
         script,
-        execution_input=RuntimeExecutionInput(
+        execution_input=ExecutionInputBase(
             current_bar=pd.Series(), all_bar=pd.DataFrame()
         ),
     )
@@ -97,7 +97,7 @@ def process():
     with pytest.raises(ScriptRuntimeError):
         runtime.execute_script(
             script,
-            execution_input=RuntimeExecutionInput(
+            execution_input=ExecutionInputBase(
                 current_bar=pd.Series(), all_bar=pd.DataFrame()
             ),
         )
@@ -115,7 +115,7 @@ def process():
     with pytest.raises(ScriptRuntimeError):
         runtime.execute_script(
             script,
-            execution_input=RuntimeExecutionInput(
+            execution_input=ExecutionInputBase(
                 current_bar=pd.Series(), all_bar=pd.DataFrame()
             ),
         )
@@ -151,7 +151,7 @@ def test_When_MultiTimeframeStrategy_Expect_ProperBarHandling(
     # script = parser.parse(multi_timeframe_strategy_script)
     # process_func = runtime.execute_script(
     #     script,
-    #     execution_input=RuntimeExecutionInput(
+    #     execution_input=ExecutionInputBase(
     #         current_bar=sample_ohlcv_data.iloc[-1], all_bar=sample_ohlcv_data
     #     ),
     # )
@@ -169,7 +169,7 @@ def test_When_LargeDataSet_Expect_ReasonableExecutionTime(
     def execute():
         process_func = runtime.execute_script(
             script,
-            execution_input=RuntimeExecutionInput(
+            execution_input=ExecutionInputBase(
                 current_bar=large_data.iloc[-1], all_bar=large_data
             ),
         )
@@ -231,7 +231,7 @@ def test_When_StrategyWithRiskManagement_Expect_PositionUpdates(
     script = parser.parse(risk_management_strategy_script)
     process_func = runtime.execute_script(
         script,
-        execution_input=RuntimeExecutionInput(
+        execution_input=ExecutionInputBase(
             current_bar=sample_ohlcv_data.iloc[-1], all_bar=sample_ohlcv_data
         ),
     )
@@ -252,7 +252,7 @@ def process():
 """)
     runtime.execute_script(
         script,
-        execution_input=RuntimeExecutionInput(
+        execution_input=ExecutionInputBase(
             current_bar=pd.Series(), all_bar=pd.DataFrame()
         ),
     )
@@ -275,7 +275,7 @@ def process():
     # First call - should initialize state
     runtime.execute_script(
         script,
-        execution_input=RuntimeExecutionInput(
+        execution_input=ExecutionInputBase(
             current_bar=sample_ohlcv_data.iloc[-1], all_bar=sample_ohlcv_data
         ),
     )
@@ -284,7 +284,7 @@ def process():
     # Second call - state should persist
     runtime.execute_script(
         script,
-        execution_input=RuntimeExecutionInput(
+        execution_input=ExecutionInputBase(
             current_bar=sample_ohlcv_data.iloc[-1], all_bar=sample_ohlcv_data
         ),
     )
@@ -310,7 +310,7 @@ def process():
         script = parser.parse(script_with_global_state)
         runtime.execute_script(
             script,
-            execution_input=RuntimeExecutionInput(
+            execution_input=ExecutionInputBase(
                 current_bar=sample_ohlcv_data.iloc[-1], all_bar=sample_ohlcv_data
             ),
         )
@@ -327,7 +327,7 @@ def process():
     with pytest.raises(ScriptRuntimeError):
         runtime.execute_script(
             script,
-            execution_input=RuntimeExecutionInput(
+            execution_input=ExecutionInputBase(
                 current_bar=pd.Series(), all_bar=pd.DataFrame()
             ),
         )

@@ -98,13 +98,20 @@ def process():
 @pytest.fixture
 def invalid_indicator_script():
     return """
+def process():
+    pass
+
+"""
+
+@pytest.fixture
+def invalid_library_script():
+    return """
 def calculate_sma(data, length):
     if len(data) < length:
         return None
     return sum(data[-length:]) / length
 
-export = calculate_sma
-export2 = calculate_sma  # Invalid: multiple exports
+exportsss = calculate_sma
 """
 
 
