@@ -1,26 +1,32 @@
 # Scripting Conventions
 
-This document outlines the conventions for writing strategy and indicator scripts for the TradePilot ScriptEngine.
+This document outlines the conventions for writing scripts for the TradePilot ScriptEngine.
 
 ## General Rules
 
 1. **Script Types**:
-   - Strategies must define `setup()` and `process()` functions
-   - Indicators must assign to exactly one `export` variable
-   - Mixing strategy and indicator features is not allowed
+   - **Strategy**: Must define `setup()` and `process()` functions and can use the strategy namespace
+   - **Indicator**: Must define `setup()` and `process()` functions but cannot use the strategy namespace
+   - **Library**: Must assign to an `export` variable and cannot have setup/process functions
+   - Mixing different script type features is not allowed
 
-2. **State Management**:
+2. **Reserved Variable Names**:
+   - Variables with names in the format `__variable_name__` (double underscores at both start and end) are reserved for system use
+   - Scripts cannot export variables with this naming pattern
+   - This applies to both direct exports (`export = __some_var__`) and dictionary keys in exports (`export = {"__key__": value}`)
+
+3. **State Management**:
    - Variables declared at the top level persist between executions
    - Use the `global` keyword to modify state variables within functions
    - Avoid naming conflicts with runtime-provided namespaces
-   
+
    ### State Initialization Best Practice
-   
+
    - **All variable declarations must be inside the `setup()` or `process()` functions.**
    - Use the `global` keyword inside both `setup()` and `process()` to access or modify persistent state variables.
    - Do **not** declare any variables at the top level of the script (outside functions).
    - The parser will issue warnings if any variables are declared outside functions.
-   
+
    **Example:**
    ```python
    def setup():
@@ -29,7 +35,7 @@ This document outlines the conventions for writing strategy and indicator script
        slow_length = input.int('Slow MA Length', 20)
        trade_count = 0
        last_position = None
-   
+
    def process():
        global fast_length, slow_length, trade_count, last_position
        # Your trading logic here
@@ -69,21 +75,56 @@ def process():
 
 ### Required Structure
 ```python
-# Input declarations
-length = input.int('length', 14)
+def setup():
+    """Initialize indicator parameters"""
+    global length
+    length = input.int('Length', 14)
 
-# Calculations
-sma = ta.sma(data.all.close, length)
+def process():
+    """Process each bar"""
+    # Calculate indicator value
+    sma_value = ta.sma(data.all.close, length)[-1]
 
-# Single export
-export = sma
+    # Plot the indicator
+    chart.plot(sma_value, color=color.blue, title="SMA")
+```
+
+### Rules:
+- Must contain `setup()` and `process()` functions (same as strategy)
+- Cannot use strategy.* namespace
+- Can use chart.* namespace for visualization
+- Can be imported by other scripts
+
+## Library Scripts
+
+### Required Structure
+```python
+def calculate_average(values):
+    """Calculate the average of a list of values"""
+    if not values:
+        return 0
+    return sum(values) / len(values)
+
+def calculate_momentum(values, period=14):
+    """Calculate momentum: current value - value 'period' bars ago"""
+    if len(values) < period:
+        return 0
+    return values[-1] - values[-period]
+
+# Export the functions as a dictionary
+export = {
+    "average": calculate_average,
+    "momentum": calculate_momentum
+}
 ```
 
 ### Rules:
 - Must assign to exactly one `export` variable
-- Can use any calculation logic
+- Cannot have setup() or process() functions
 - Cannot use strategy.* namespace
-- Export can be any Python object
+- Export can be any Python object (function, dictionary, class, etc.)
+- The value of the export variable is returned when the script is executed
+- Primarily used for code reuse across scripts
 
 ## Namespace Design Principles
 

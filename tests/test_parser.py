@@ -43,15 +43,14 @@ def setup():
     from script_engine.exceptions.parsing_specific import MissingScriptTypeError
     with pytest.raises(MissingScriptTypeError) as exc_info:
         parser.parse(invalid_strategy)
-        
+
 def test_When_IndicatorExportMissing_Expect_MissingScriptTypeError(runtime, parser):
     with pytest.raises(MissingScriptTypeError):
-        script = parser.parse("""
+        parser.parse("""
 def calculate():
     return 1
 # Missing export statement
 """)
-        runtime.execute_script(script)
 
 def test_parse_strategy_with_indicator_import(parser):
     script_with_import = """

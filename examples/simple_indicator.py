@@ -1,13 +1,21 @@
 """
-Simple Moving Average Indicator
+Simple Moving Average Indicator (New Format)
 Calculates SMA of closing prices for given length
 """
 
-# Input parameter
-length = input.int('Length', 14)
+def setup():
+    """Initialize indicator parameters"""
+    global length
+    length = input.int('Length', 14)
+    print(f"Indicator initialized with length={length}")
 
-# Calculate SMA using current bar's close price
-sma_value = ta.sma(data.all.close, length)
-
-# Export the indicator value
-export = sma_value
+def process():
+    """Process each bar"""
+    # Calculate SMA using current bar's close price
+    sma_value = ta.sma(data.all.close, length)[-1]
+    
+    # Plot the SMA
+    chart.plot(sma_value, color=color.blue, title="SMA")
+    
+    # Print debug info
+    print(f"{data.current.timestamp}: Close={data.current.close:.2f} | SMA={sma_value:.2f}")

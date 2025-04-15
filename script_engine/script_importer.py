@@ -4,6 +4,7 @@ Module for script importing functionality used by the script engine runtime.
 import logging
 import uuid
 from typing import Any, Callable, Dict
+from types import SimpleNamespace
 
 from .execution_context import ExecutionContext
 from .exceptions import ScriptRuntimeError, ScriptNotFoundError
@@ -14,30 +15,30 @@ logger = logging.getLogger(__name__)
 
 class ScriptImporter:
     """Handles importing scripts within the runtime environment."""
-    
+
     def __init__(self, runtime_environment):
         """
         Initialize the script importer.
-        
+
         Args:
             runtime_environment: The parent RuntimeEnvironment instance
         """
         self.runtime_environment = runtime_environment
-        
+
     def create_importer(self, importer_instance_id: str) -> Callable[[str], Any]:
         """
         Creates a closure for the import_script function specific to the importing context.
-        
+
         Args:
             importer_instance_id: The instance ID of the script performing the import
-            
+
         Returns:
             A callable that can be used to import scripts
         """
         def _importer(script_definition_id_to_import: str) -> Any:
             return self.import_script(importer_instance_id, script_definition_id_to_import)
         return _importer
-        
+
     def import_script(self, importer_instance_id: str, script_definition_id_to_import: str) -> Any:
         """
         Handles the import of a script, creating an isolated instance.
@@ -99,36 +100,42 @@ class ScriptImporter:
 
             # Return a representation of the imported script's exports
             return self._get_exports_proxy(new_context)
-            
+
     def _get_exports_proxy(self, context: ExecutionContext) -> Any:
         """
         Creates a proxy object exposing only the intended exports from a context.
-        
+        Automatically converts dictionary exports to dot-notation accessible objects.
+
         Args:
             context: The execution context to extract exports from
-            
+
         Returns:
-            The exported value(s) from the script
+            The exported value(s) from the script with dot notation access
         """
         # Get script definition for metadata
         script_def = self.runtime_environment._get_script_definition(context.definition_id)
-        
-        # PineScript indicators typically have one primary output value
+
+        # Get the export value
         if 'export' in context.globals:
-            return context.globals['export']
-        # Check metadata if multiple exports are explicitly defined (optional feature)
+            export_value = context.globals['export']
+            # If export is a dictionary, convert it to SimpleNamespace for dot notation
+            if isinstance(export_value, dict):
+                return SimpleNamespace(**export_value)
+            return export_value
+        # Check metadata if multiple exports are explicitly defined
         elif script_def.metadata.exports:
             exports_dict = {k: context.globals[k] for k in script_def.metadata.exports if k in context.globals}
             # Return single value if only one export found
             if len(exports_dict) == 1:
                 return next(iter(exports_dict.values()))
-            # Return dict if multiple exports found
+            # Convert dict to SimpleNamespace if multiple exports found
             elif len(exports_dict) > 1:
-                logger.warning(f"Script '{context.definition_id}' has multiple exports defined ({script_def.metadata.exports}) but no single 'export' variable. Returning dictionary of exports.")
-                return exports_dict
+                logger.warning(f"Script '{context.definition_id}' has multiple exports defined ({script_def.metadata.exports}) but no single 'export' variable. Converting dictionary to dot notation accessible object.")
+                return SimpleNamespace(**exports_dict)
             else:
                 logger.warning(f"Script '{context.definition_id}' defined exports ({script_def.metadata.exports}) but none were found in the execution context.")
                 return None
         else:
             logger.warning(f"Imported script instance '{context.instance_id}' (from '{context.definition_id}') does not define an 'export' variable or specify exports in metadata.")
             return None
+

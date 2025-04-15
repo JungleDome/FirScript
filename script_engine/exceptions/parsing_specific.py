@@ -36,3 +36,7 @@ class StrategyFunctionInIndicatorError(ScriptValidationError):
 class StrategyGlobalVariableError(ScriptValidationError):
     """Raised when a strategy script uses global variables."""
     pass
+
+class ReservedVariableNameError(ScriptValidationError):
+    """Raised when a script uses a reserved variable name format (__name__)."""
+    pass

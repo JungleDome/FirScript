@@ -29,6 +29,9 @@ class ExecutionContext:
             'dict': dict,
             'set': set,
             'tuple': tuple,
+            'sum': sum,
+            'max': max,
+            'min': min,
             # Add other safe builtins as needed
         }
         # Prevent access to potentially harmful builtins

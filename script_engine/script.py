@@ -7,6 +7,7 @@ import uuid
 class ScriptType(Enum):
     STRATEGY = "strategy"
     INDICATOR = "indicator"
+    LIBRARY = "library"
 
 @dataclass
 class ScriptMetadata:
@@ -43,5 +44,5 @@ class Script:
 
     @property
     def type(self) -> ScriptType:
-        """Returns the type of the script (Strategy or Indicator)."""
+        """Returns the type of the script (Strategy, Indicator, or Library)."""
         return self.metadata.type
