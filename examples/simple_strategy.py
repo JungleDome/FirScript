@@ -3,10 +3,6 @@ MA Crossover Strategy
 Demonstrates state persistence and basic moving average crossover logic
 """
 
-# Import an indicator
-#const sma = import 'sma_indicator'
-
-
 def setup():
     """Initialize strategy state"""
     global trade_count, last_position, fast_length, slow_length
@@ -21,8 +17,8 @@ def process():
     global trade_count, last_position
     
     # Get indicator values
-    fast_ma = ta.sma(data.all.close, fast_length).iloc[-1]
-    slow_ma = ta.sma(data.all.close, slow_length).iloc[-1]
+    fast_ma = ta.sma(data.all.close, fast_length)[-1]
+    slow_ma = ta.sma(data.all.close, slow_length)[-1]
     close = data.current.close
     
     # Plot the moving averages
