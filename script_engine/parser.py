@@ -2,24 +2,26 @@ import ast
 import re
 from typing import Any, Dict, List, Set, Tuple
 
-from script_engine.exceptions.parsing_specific import StrategyGlobalVariableError, ReservedVariableNameError
+from script_engine.exceptions import StrategyGlobalVariableError, ReservedVariableNameError
+from script_engine.exceptions.parsing import ConflictingScriptTypeError, InvalidInputUsageError, MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, StrategyFunctionInIndicatorError
 from .script import Script, ScriptType, ScriptMetadata
 
 class ScriptParser:
     def __init__(self):
         self.required_strategy_functions = {"setup", "process"}
-        self.allowed_namespaces = {"ta", "input", "chart", "color", "strategy"}
         self.reserved_var_pattern = re.compile(r'^__.*__$')  # Pattern for reserved variable names
 
-    def parse(self, source: str, script_id: str) -> Script:
+    def parse(self, source: str, script_id: str, script_type: ScriptType = None) -> Script:
         """Parse and validate a script source."""
         try:
             tree = ast.parse(source)
-            script_type = self._determine_script_type(tree)
+            
+            if script_type is None:
+                script_type = self._determine_script_type(tree)
 
             # Extract metadata
             metadata = self._extract_metadata(tree, script_type, script_id)
-
+            
             # Validate script constraints
             self._validate_script(tree, metadata)
 
@@ -62,7 +64,6 @@ class ScriptParser:
 
         # Determine script type based on characteristics
         if is_strategy_or_indicator and has_export:
-            from script_engine.exceptions.parsing_specific import ConflictingScriptTypeError
             raise ConflictingScriptTypeError(
                 "Script cannot have both setup/process functions and an export variable at the module level"
             )
@@ -82,7 +83,6 @@ class ScriptParser:
         elif is_library:
             return ScriptType.LIBRARY
         else:
-            from script_engine.exceptions.parsing_specific import MissingScriptTypeError
             raise MissingScriptTypeError(
                 "Script must be either a strategy/indicator (with setup/process functions) or a library (with export variable)"
             )
@@ -95,12 +95,7 @@ class ScriptParser:
         custom_imports: Dict[str, str] = {}
 
         for node in ast.walk(tree):
-            # Remove standard Python import handling, we use custom import_script
-            # if isinstance(node, ast.Import):
-            #     imports.extend(alias.name for alias in node.names)
-            # elif isinstance(node, ast.ImportFrom):
-            #     imports.append(node.module)
-            if isinstance(node, ast.Call): # Changed from elif
+            if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if node.func.attr.startswith("input."):
                         if node.args and isinstance(node.args[0], ast.Constant):
@@ -163,7 +158,6 @@ class ScriptParser:
                     if isinstance(node, ast.FunctionDef)}
         missing = self.required_strategy_functions - functions
         if missing:
-            from script_engine.exceptions.parsing_specific import MissingRequiredFunctionsError
             raise MissingRequiredFunctionsError(f"Strategy script missing required functions: {missing}")
 
         # Check for input usage in process function
@@ -173,19 +167,14 @@ class ScriptParser:
                     if isinstance(child, ast.Call):
                         if isinstance(child.func, ast.Attribute):
                             if isinstance(child.func.value, ast.Name) and child.func.value.id == "input":
-                                from script_engine.exceptions.parsing_specific import InvalidInputUsageError
                                 raise InvalidInputUsageError("Input functions cannot be used inside process()")
 
-        # Warn about any variable assignments at module level (outside setup)
+        # Check for variable assignments at module level (outside setup & process)
         for node in tree.body:
             if isinstance(node, ast.Assign):
                 for target in node.targets:
                     if isinstance(target, ast.Name):
                         var_name = target.id
-                        # Ignore ALL_CAPS constants only
-                        if var_name.isupper():
-                            continue
-                        # Warn for all other assignments, including inputs
                         raise StrategyGlobalVariableError(f"Variable '{var_name}' assigned at global scope. Move all variable declarations inside setup() or process().")
 
     def _validate_indicator_script(self, tree: ast.AST) -> None:
@@ -195,7 +184,6 @@ class ScriptParser:
                     if isinstance(node, ast.FunctionDef)}
         missing = self.required_strategy_functions - functions
         if missing:
-            from script_engine.exceptions.parsing_specific import MissingRequiredFunctionsError
             raise MissingRequiredFunctionsError(f"Indicator script missing required functions: {missing}")
 
         # Check for strategy function calls
@@ -203,8 +191,24 @@ class ScriptParser:
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if isinstance(node.func.value, ast.Name) and node.func.value.id == "strategy":
-                        from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
                         raise StrategyFunctionInIndicatorError("Indicator scripts cannot use strategy functions")
+        
+        # Check for input usage in process function
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == "process":
+                for child in ast.walk(node):
+                    if isinstance(child, ast.Call):
+                        if isinstance(child.func, ast.Attribute):
+                            if isinstance(child.func.value, ast.Name) and child.func.value.id == "input":
+                                raise InvalidInputUsageError("Input functions cannot be used inside process()")
+
+        # Check for variable assignments at module level (outside setup & process)
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        var_name = target.id
+                        raise StrategyGlobalVariableError(f"Variable '{var_name}' assigned at global scope. Move all variable declarations inside setup() or process().")
 
     def _validate_library_script(self, tree: ast.AST) -> None:
         """Validate library script constraints."""
@@ -213,9 +217,10 @@ class ScriptParser:
                   if isinstance(node, ast.Assign)
                   and isinstance(node.targets[0], ast.Name)
                   and node.targets[0].id == 'export'}
-        if len(exports) != 1:
-            from script_engine.exceptions.parsing_specific import MultipleExportsError
+        if len(exports) > 1:
             raise MultipleExportsError("Library script must have exactly one export")
+        elif len(exports) < 1:
+            raise NoExportsError("Library script must have at least one export")
 
         # Check for reserved variable names in dictionary exports
         for node in ast.walk(tree):
@@ -232,7 +237,6 @@ class ScriptParser:
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if isinstance(node.func.value, ast.Name) and node.func.value.id == "strategy":
-                        from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
                         raise StrategyFunctionInIndicatorError("Library scripts cannot use strategy functions")
 
     def _is_reserved_variable_name(self, var_name: str) -> bool:

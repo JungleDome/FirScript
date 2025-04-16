@@ -24,13 +24,7 @@ class Script:
     """Represents a parsed script ready for execution."""
     source: str
     metadata: ScriptMetadata
-    # Unique identifier for this specific script definition (e.g., file path or hash)
-    # Used to retrieve the source code.
-    definition_id: str = field(init=False)
-
-    def __post_init__(self):
-        # Use metadata.id as the primary identifier for the script definition
-        self.definition_id = self.metadata.id
+    is_entrypoint: bool = False
 
     @property
     def id(self) -> str:

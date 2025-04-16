@@ -3,7 +3,7 @@ Simple example demonstrating how to run a library script
 """
 import random
 import pandas as pd
-from script_engine.engine import ScriptEngine
+from script_engine.engine import Engine
 
 def main():
     # Create sample price data
@@ -18,16 +18,16 @@ def main():
         library_script = f.read()
 
     # Initialize engine
-    engine = ScriptEngine({'main': library_script}, 'main')
+    engine = Engine(data, main_script_str=library_script)
     
     # Run the library
-    lib = engine.run(data)
+    lib = engine.run()
     
     # Use the exported functions
     close_prices = data['close'].tolist()
-    avg = lib['average'](close_prices)
-    momentum = lib['momentum'](close_prices)
-    roc = lib['roc'](close_prices)
+    avg = lib[0].average(close_prices)
+    momentum = lib[0].momentum(close_prices)
+    roc = lib[0].roc(close_prices)
     
     print("\nLibrary execution completed:")
     print(f"Average: {avg:.2f}")

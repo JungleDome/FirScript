@@ -2,9 +2,10 @@ from enum import Enum
 from typing import override
 import pandas as pd
 import random
-from script_engine.execution_input import ExecutionInputBase
+from script_engine.engine import Engine
+from script_engine.importer import ScriptImporter
+from script_engine.namespace_registry import NamespaceRegistry
 from script_engine.namespaces.base import BaseNamespace
-from script_engine.runtime import RuntimeEnvironment
 from script_engine.parser import ScriptParser
 
 
@@ -34,35 +35,39 @@ def main():
         }
     )
 
-    # Initialize parser
-    parser = ScriptParser()
-    strategy_script = parser.parse(
-        """
+    strategy_script = """
 def setup():
     pass
 
 def process():
     custom.add_counter()
-""",
-        "main_script",
-    )
+"""
 
-    # Initialize runtime
-    runtime = RuntimeEnvironment(
-        script_definitions={"main_script": strategy_script},
-        column_mapping={"close": "close"},
-    )
-    runtime.register_namespace("custom", CustomNamespace())
+    # Prepare the runtime
+    registry = NamespaceRegistry()
+    registry.register("custom", CustomNamespace())
+    registry.register_default_namespaces({})
 
+    importer = ScriptImporter(registry)
+    importer.add_script('main', strategy_script, is_main=True)    
+        
+    registry.register('import_script', importer.import_script)
+    
+    # Run the script
+    ctx = importer.build_main_script()
+    ctx.run_setup()
+    
     print("=== Script Output ===")
     for i in range(len(data)):
-        bar = data.iloc[0 : i + 1]
-        current = data.iloc[i:i+1]
-        result = runtime.run(
-            "main_script",
-            execution_input=ExecutionInputBase(current=current, all=bar),
-        )
-        print(f"Bar {i+1}: {result}")
+        current_bar = data.iloc[i]  # Get current row as Series
+        historical_bars = data.iloc[: i + 1]  # Get all bars up to and including current row
+        registry.get("data").set_current_bar(current_bar)
+        registry.get("data").set_all_bar(historical_bars)
+        ctx.run_process()
+        
+    # Generate outputs
+    result = ctx.generate_outputs()
+    print(f"{result}")
 
 
 main()

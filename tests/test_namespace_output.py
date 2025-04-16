@@ -4,7 +4,7 @@ Test script for namespace output generation.
 import pandas as pd
 import pytest
 
-from script_engine.engine import ScriptEngine
+from script_engine.engine import Engine
 from script_engine.namespaces.base import BaseNamespace
 
 
@@ -33,14 +33,13 @@ def process():
     """
     
     # Create the script engine with automatic output generation
-    engine = ScriptEngine(
-        script_sources={"main": script_source},
-        main_script_definition_id="main",
-        generate_output_after_run=True
+    engine = Engine(
+        data,
+        main_script_str=script_source
     )
     
     # Run the script with data
-    result = engine.run(data)
+    result = engine.run()[0]
     
     # Verify that we got namespace outputs
     assert isinstance(result, dict)
@@ -56,25 +55,6 @@ def process():
     assert len(result["chart"]) > 0
     assert "data" in result["chart"][0]
     assert "options" in result["chart"][0]
-    
-    # Test manual output generation
-    engine = ScriptEngine(
-        script_sources={"main": script_source},
-        main_script_definition_id="main",
-        generate_output_after_run=False
-    )
-    
-    # Run the script with data
-    engine.run(data)
-    
-    # Manually generate outputs
-    outputs = engine.generate_outputs()
-    
-    # Verify outputs
-    assert isinstance(outputs, dict)
-    assert "strategy" in outputs
-    assert "chart" in outputs
-
 
 class CustomNamespace(BaseNamespace):
     """Custom namespace for testing."""
@@ -110,17 +90,16 @@ def process():
     """
     
     # Create the script engine with automatic output generation
-    engine = ScriptEngine(
-        script_sources={"main": script_source},
-        main_script_definition_id="main",
-        generate_output_after_run=True
+    engine = Engine(
+        data,
+        main_script_str=script_source,
     )
     
     # Register custom namespace
     engine.register_namespace("custom", CustomNamespace())
     
     # Run the script with data
-    result = engine.run(data)
+    result = engine.run()[0]
     
     # Verify that we got namespace outputs
     assert isinstance(result, dict)
@@ -128,5 +107,5 @@ def process():
     assert result["custom"]["value"] == 1
     
     # Run again to increment
-    result = engine.run(data)
+    result = engine.run()
     assert result["custom"]["value"] == 2

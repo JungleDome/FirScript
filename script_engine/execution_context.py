@@ -1,18 +1,71 @@
-"""
-Module for execution context classes used by the script engine runtime.
-"""
-from dataclasses import dataclass, field
-from typing import Dict, Any
+from types import SimpleNamespace
+from typing import Any, Dict
+from script_engine.exceptions.runtime import ScriptCompilationError, ScriptRuntimeError
+from script_engine.namespace_registry import NamespaceRegistry
+from script_engine.namespaces.base import BaseNamespace
 
 
-@dataclass
-class ExecutionContext:
-    """Holds the state and globals for a single script instance."""
-    instance_id: str
-    definition_id: str  # ID of the script definition (e.g., path)
-    globals: Dict[str, Any] = field(default_factory=dict)
+class ScriptContext:
+    def __init__(
+        self, script_str: str, namespaces: dict[str, BaseNamespace], name="<script>"
+    ):
+        self.name = name
+        self.script_str = script_str
+        self.namespaces = namespaces
+        self.locals = {}
+        self.globals = {}
+        self._prepare_global_context()
 
-    def __post_init__(self):
+    def compile(self):
+        try:
+            code = compile(self.script_str, self.name, "exec")
+            exec(code, self.globals, self.locals)
+        except Exception as e:
+            raise ScriptCompilationError(f"Error compiling script: {e}")
+
+    def run_setup(self):
+        try:
+            if "setup" in self.locals:
+                self.locals["setup"]()
+        except Exception as e:
+            raise ScriptRuntimeError(f"Error in setup function: {e}")
+
+    def run_process(self):
+        try:
+            if "process" in self.locals:
+                return self.locals["process"]()
+        except Exception as e:
+            raise ScriptRuntimeError(f"Error in process function: {e}")
+        
+    def get_export(self):
+        try:
+            export_value = self.locals.get('export', None)
+            # If export is a dictionary, convert it to SimpleNamespace for dot notation
+            if isinstance(export_value, dict):
+                return SimpleNamespace(**export_value)
+            return export_value
+        except Exception as e:
+            raise ScriptRuntimeError(f"Error in export: {e}")
+
+    def generate_outputs(self) -> Dict[str, Any]:
+        """
+        Generate outputs from all namespaces that support output generation.
+
+        Returns:
+            A dictionary mapping namespace names to their generated outputs.
+        """
+        return NamespaceRegistry.generate_outputs(self.namespaces)
+    
+    def generate_metadatas(self) -> Dict[str, Any]:
+        """
+        Generate metadata outputs from all namespaces that support metadata generation.
+
+        Returns:
+            A dictionary mapping namespace names to their generated metadatas.
+        """
+        return NamespaceRegistry.generate_metadatas(self.namespaces)
+    
+    def _prepare_global_context(self):
         """Initialize the execution context with safe builtins."""
         # Basic builtins, can be customized further
         self.globals['__builtins__'] = {
@@ -32,6 +85,7 @@ class ExecutionContext:
             'sum': sum,
             'max': max,
             'min': min,
+            'type': type
             # Add other safe builtins as needed
         }
         # Prevent access to potentially harmful builtins
@@ -41,3 +95,5 @@ class ExecutionContext:
         self.globals['__builtins__']['compile'] = None
         self.globals['__builtins__']['input'] = None
         self.globals['__builtins__']['__import__'] = None
+        # Inject standard namespaces
+        self.globals.update(self.namespaces)

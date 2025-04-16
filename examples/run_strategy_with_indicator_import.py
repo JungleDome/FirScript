@@ -6,9 +6,11 @@ import sys
 import os
 import pandas as pd
 
+from script_engine.engine import Engine
+from script_engine.script import Script, ScriptMetadata, ScriptType
+
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from script_engine.engine import ScriptEngine
 
 def main():
     # Create sample price data
@@ -28,13 +30,13 @@ def main():
 
     # Initialize engine with both scripts
     # The key in the dictionary is the script ID that will be used in import_script()
-    engine = ScriptEngine({
-        'main': strategy_script,
-        'simple_indicator': indicator_script
-    }, 'main')
+    engine = Engine(data, scripts=[
+        Script(strategy_script, is_entrypoint=True, metadata=ScriptMetadata(id='main', name='main', type=ScriptType.STRATEGY)),
+        Script(indicator_script, metadata=ScriptMetadata(id='simple_indicator', name='simple_indicator', type=ScriptType.INDICATOR))
+    ])
     
     # Run the strategy
-    result = engine.run(data)
+    result = engine.run()
     print("\nStrategy execution completed:")
     print(f"Result: {result}")
 

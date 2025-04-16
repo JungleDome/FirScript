@@ -3,7 +3,7 @@ Simple example demonstrating how to run an indicator script
 """
 import random
 import pandas as pd
-from script_engine.engine import ScriptEngine
+from script_engine.engine import Engine
 
 def main():
     # Create sample price data
@@ -18,10 +18,10 @@ def main():
         indicator_script = f.read()
 
     # Initialize engine
-    engine = ScriptEngine({'main': indicator_script}, 'main')
+    engine = Engine(data, main_script_str=indicator_script)
     
     # Run the indicator
-    result = engine.run(data)
+    result = engine.run()
     print("\nIndicator execution completed:")
     print(f"Final SMA value: {result}")
 
