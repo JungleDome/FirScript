@@ -1,7 +1,6 @@
 import pytest
-from script_engine.execution_input import ExecutionInputBase
 from script_engine.script import ScriptType
-from script_engine.exceptions.parsing_specific import MissingScriptTypeError, ConflictingScriptTypeError
+from script_engine.exceptions.parsing_specific import MissingScriptTypeError, ConflictingScriptTypeError, NoExportsError
 import pandas as pd
 
 def test_parse_valid_library_script(parser):
@@ -23,7 +22,7 @@ export = {
     "momentum": calculate_momentum
 }
 """
-    script = parser.parse(library_script, 'test_script_id')
+    script = parser.parse(library_script, 'test_script_id', ScriptType.LIBRARY)
     assert script.metadata.type == ScriptType.LIBRARY
 
 def test_library_with_setup_process_raises_error(parser):
@@ -38,7 +37,7 @@ def process():
 export = {"function": lambda x: x}
 """
     with pytest.raises(ConflictingScriptTypeError):
-        parser.parse(invalid_library, 'test_script_id')
+        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
 def test_library_without_export_raises_error(parser):
     """Test that a script without export and without setup/process raises an error."""
@@ -46,17 +45,17 @@ def test_library_without_export_raises_error(parser):
 def calculate_something():
     return 42
 """
-    with pytest.raises(MissingScriptTypeError):
-        parser.parse(invalid_script, 'test_script_id')
+    with pytest.raises(NoExportsError):
+        parser.parse(invalid_script, 'test_script_id', ScriptType.LIBRARY)
 
 def test_library_with_multiple_exports_raises_error(parser):
     """Test that a library script with multiple exports raises an error."""
     invalid_library = """
 export = {"func1": lambda x: x}
-export_another = {"func2": lambda x: x * 2}
+export = {"func2": lambda x: x * 2}
 """
     with pytest.raises(Exception):  # Could be MultipleExportsError or similar
-        parser.parse(invalid_library, 'test_script_id')
+        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
 def test_execute_library_script(runtime, parser):
     """Test that a library script can be executed and returns the export value."""
@@ -69,7 +68,7 @@ def calculate_average(values):
 # Export a single function
 export = calculate_average
 """
-    script = parser.parse(library_script, 'test_script_id')
+    script = parser.parse(library_script, 'test_script_id', ScriptType.LIBRARY)
 
     # Create sample data
     data = pd.DataFrame({

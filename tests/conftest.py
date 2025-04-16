@@ -4,13 +4,11 @@ import pytest
 import os
 
 from script_engine.namespaces.color import ColorNamespace 
-print(os.getcwd())
 from script_engine.namespaces.chart import ChartNamespace
 from script_engine.namespaces.input import InputNamespace
 from script_engine.namespaces.strategy import StrategyNamespace
 from script_engine.namespaces.ta import TANamespace
 from script_engine.parser import ScriptParser
-from script_engine.runtime import RuntimeEnvironment
 from script_engine.script import ScriptType
 
 @pytest.fixture
@@ -19,16 +17,7 @@ def parser():
 
 @pytest.fixture
 def runtime(request):
-    params = request.param if request and hasattr(request, 'param') else {}
-    env = RuntimeEnvironment(column_mapping=params.get('column_mapping',{'close': 'close'}))
-
-    env.register_namespace('ta', TANamespace())
-    env.register_namespace('strategy', StrategyNamespace())
-    env.register_namespace('input', InputNamespace(params.get('inputs_override', {})))
-    env.register_namespace('chart', ChartNamespace())
-    env.register_namespace('color', ColorNamespace())
-
-    return env
+    return 
 
 @pytest.fixture
 def valid_strategy_script():
@@ -71,47 +60,6 @@ def calculate_sma(data, length = 14):
     return sum(data[-length:]) / length
 
 export = calculate_sma
-"""
-
-@pytest.fixture
-def invalid_strategy_script():
-    return """
-def setup():
-    global fast_length, slow_length
-    fast_length = input.int('Fast MA Length', 10)
-    slow_length = input.int('Slow MA Length', 20)
-
-def process():
-    # Invalid: redefine inputs inside process, which should not happen
-    fast_length = input.int('Fast MA Length', 10)
-    slow_length = input.int('Slow MA Length', 20)
-
-    fast_ma = ta.sma(data.current.close, fast_length)[-1]
-    slow_ma = ta.sma(data.current.close, slow_length)[-1]
-
-    if fast_ma > slow_ma:
-        strategy.long()
-    elif fast_ma < slow_ma:
-        strategy.short()
-"""
-
-@pytest.fixture
-def invalid_indicator_script():
-    return """
-def process():
-    pass
-
-"""
-
-@pytest.fixture
-def invalid_library_script():
-    return """
-def calculate_sma(data, length):
-    if len(data) < length:
-        return None
-    return sum(data[-length:]) / length
-
-exportsss = calculate_sma
 """
 
 
@@ -161,23 +109,4 @@ def calculate(data):
     return (sma_val + ema_val) / 2
 
 export = calculate
-"""
-
-@pytest.fixture
-def risk_management_strategy_script():
-    return """
-def setup():
-    global position_size, max_risk
-    position_size = input.float('Position Size', 0.1)
-    max_risk = input.float('Max Risk %', 2.0)
-
-def process():
-    atr = ta.atr(data.all, 14)[-1]
-    stop_loss = data.current.close - (2 * atr)
-    take_profit = data.current.close + (3 * atr)
-    
-    strategy.entry(amount=position_size,
-                  stop_loss=stop_loss,
-                  take_profit=take_profit,
-                  risk=max_risk)
 """

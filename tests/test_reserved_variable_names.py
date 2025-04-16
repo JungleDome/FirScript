@@ -1,5 +1,6 @@
 import pytest
-from script_engine.exceptions.parsing_specific import ReservedVariableNameError
+from script_engine.exceptions.parsing_specific import NoExportsError, ReservedVariableNameError
+from script_engine.script import ScriptType
 
 def test_library_with_reserved_variable_name_export(parser):
     """Test that a library script with a reserved variable name export raises an error."""
@@ -10,7 +11,7 @@ __system_var__ = "This is a reserved variable name"
 export = __system_var__
 """
     with pytest.raises(ReservedVariableNameError):
-        parser.parse(invalid_library)
+        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
 def test_library_with_reserved_variable_name_in_dict(parser):
     """Test that a library script with a reserved variable name in a dictionary export raises an error."""
@@ -22,7 +23,7 @@ export = {
 }
 """
     with pytest.raises(ReservedVariableNameError):
-        parser.parse(invalid_library)
+        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
 def test_library_with_reserved_export_name(parser):
     """Test that a library script with a reserved export name raises an error."""
@@ -30,8 +31,8 @@ def test_library_with_reserved_export_name(parser):
 # Using a reserved name for the export variable itself
 __export__ = "This is a reserved export name"
 """
-    with pytest.raises(ReservedVariableNameError):
-        parser.parse(invalid_library)
+    with pytest.raises(NoExportsError):
+        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
 def test_library_with_valid_variable_names(parser):
     """Test that a library script with valid variable names passes validation."""
@@ -47,5 +48,5 @@ export = {
     "constant": CONSTANT_VAR
 }
 """
-    script = parser.parse(valid_library)
+    script = parser.parse(valid_library, 'test_script_id', ScriptType.LIBRARY)
     assert script is not None

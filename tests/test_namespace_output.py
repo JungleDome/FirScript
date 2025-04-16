@@ -4,7 +4,6 @@ Test script for namespace output generation.
 import pandas as pd
 import pytest
 
-from script_engine.engine import ScriptEngine
 from script_engine.namespaces.base import BaseNamespace
 
 

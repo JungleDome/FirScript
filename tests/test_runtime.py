@@ -2,7 +2,6 @@ import pytest
 import pandas as pd
 from script_engine.exceptions.parsing_specific import MissingScriptTypeError, StrategyGlobalVariableError
 from script_engine.exceptions.runtime import ScriptRuntimeError
-from script_engine.runtime import ExecutionInputBase
 from script_engine.script import ScriptType
 
 
