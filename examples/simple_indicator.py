@@ -18,4 +18,5 @@ def process():
     chart.plot(sma_value, color=color.blue, title="SMA")
     
     # Print debug info
-    print(f"{data.current.timestamp}: Close={data.current.close:.2f} | SMA={sma_value:.2f}")
+    sma_str = f'{sma_value:.2f}' if sma_value is not None else f'{sma_value}'
+    print(f"{data.current.timestamp}: Close={data.current.close:.2f} | SMA={sma_str}")

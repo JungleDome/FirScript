@@ -1,14 +1,16 @@
 """
-Example demonstrating how to run a strategy script that imports another script
+Example demonstrating how to run a strategy script that imports a library script
 """
 import random
 import sys
 import os
 import pandas as pd
 
+from script_engine.engine import Engine
+from script_engine.script import Script, ScriptMetadata, ScriptType
+
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from script_engine.engine import ScriptEngine
 
 def main():
     # Create sample price data
@@ -19,7 +21,7 @@ def main():
     })
 
     # Read the strategy script
-    with open('examples/simple_strategy_with_import.py', 'r') as f:
+    with open('examples/strategy_with_library_import.py', 'r') as f:
         strategy_script = f.read()
     
     # Read the library script that will be imported
@@ -28,13 +30,13 @@ def main():
 
     # Initialize engine with both scripts
     # The key in the dictionary is the script ID that will be used in import_script()
-    engine = ScriptEngine({
-        'main': strategy_script,
-        'simple_library': library_script
-    }, 'main')
+    engine = Engine(data, scripts=[
+        Script(strategy_script, is_entrypoint=True, metadata=ScriptMetadata(id='main', name='main', type=ScriptType.STRATEGY)),
+        Script(library_script, metadata=ScriptMetadata(id='simple_library', name='simple_library', type=ScriptType.LIBRARY))
+    ])
     
     # Run the strategy
-    result = engine.run(data)
+    result = engine.run()
     print("\nStrategy execution completed:")
     print(f"Result: {result}")
 
