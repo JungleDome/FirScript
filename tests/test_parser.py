@@ -1,5 +1,5 @@
 import pytest
-from script_engine.exceptions.parsing_specific import MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError
+from script_engine.exceptions import MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, InvalidInputUsageError, StrategyFunctionInIndicatorError, ScriptParsingError
 from script_engine.script import ScriptType
 
 def test_parse_valid_strategy(parser):
@@ -26,7 +26,6 @@ def process():
     assert script.metadata.type == ScriptType.INDICATOR
 
 def test_When_InputUsedInProcess_Expect_InvalidInputUsageError(parser):
-    from script_engine.exceptions.parsing_specific import InvalidInputUsageError
     with pytest.raises(InvalidInputUsageError) as exc_info:
         parser.parse('''
 def setup():
@@ -58,7 +57,6 @@ def test_parse_syntax_error(parser):
     invalid_syntax = """
 
 """
-    from script_engine.exceptions.parsing import ScriptParsingError
     with pytest.raises(ScriptParsingError) as exc_info:
         parser.parse(invalid_syntax, 'test_script_id')
 
@@ -95,7 +93,6 @@ def process():
     chart.plot(sma_value, color=color.blue, title="SMA")
     strategy.long()
 """
-    from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
     with pytest.raises(StrategyFunctionInIndicatorError) as exc_info:
         parser.parse(invalid_indicator_with_strategy_call, 'test_script_id', ScriptType.INDICATOR)
         
@@ -111,6 +108,5 @@ export = calculate_sma(bar.close, 14)
 def dummy():
     strategy.long()
 """
-    from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
     with pytest.raises(StrategyFunctionInIndicatorError) as exc_info:
         parser.parse(invalid_indicator_with_strategy_call, 'test_script_id', ScriptType.LIBRARY)

@@ -3,6 +3,7 @@ import re
 from typing import Any, Dict, List, Set, Tuple
 
 from script_engine.exceptions import StrategyGlobalVariableError, ReservedVariableNameError
+from script_engine.exceptions.parsing import ConflictingScriptTypeError, InvalidInputUsageError, MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, StrategyFunctionInIndicatorError
 from .script import Script, ScriptType, ScriptMetadata
 
 class ScriptParser:
@@ -63,7 +64,6 @@ class ScriptParser:
 
         # Determine script type based on characteristics
         if is_strategy_or_indicator and has_export:
-            from script_engine.exceptions.parsing_specific import ConflictingScriptTypeError
             raise ConflictingScriptTypeError(
                 "Script cannot have both setup/process functions and an export variable at the module level"
             )
@@ -83,7 +83,6 @@ class ScriptParser:
         elif is_library:
             return ScriptType.LIBRARY
         else:
-            from script_engine.exceptions.parsing_specific import MissingScriptTypeError
             raise MissingScriptTypeError(
                 "Script must be either a strategy/indicator (with setup/process functions) or a library (with export variable)"
             )
@@ -159,7 +158,6 @@ class ScriptParser:
                     if isinstance(node, ast.FunctionDef)}
         missing = self.required_strategy_functions - functions
         if missing:
-            from script_engine.exceptions.parsing_specific import MissingRequiredFunctionsError
             raise MissingRequiredFunctionsError(f"Strategy script missing required functions: {missing}")
 
         # Check for input usage in process function
@@ -169,7 +167,6 @@ class ScriptParser:
                     if isinstance(child, ast.Call):
                         if isinstance(child.func, ast.Attribute):
                             if isinstance(child.func.value, ast.Name) and child.func.value.id == "input":
-                                from script_engine.exceptions.parsing_specific import InvalidInputUsageError
                                 raise InvalidInputUsageError("Input functions cannot be used inside process()")
 
         # Check for variable assignments at module level (outside setup & process)
@@ -187,7 +184,6 @@ class ScriptParser:
                     if isinstance(node, ast.FunctionDef)}
         missing = self.required_strategy_functions - functions
         if missing:
-            from script_engine.exceptions.parsing_specific import MissingRequiredFunctionsError
             raise MissingRequiredFunctionsError(f"Indicator script missing required functions: {missing}")
 
         # Check for strategy function calls
@@ -195,7 +191,6 @@ class ScriptParser:
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if isinstance(node.func.value, ast.Name) and node.func.value.id == "strategy":
-                        from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
                         raise StrategyFunctionInIndicatorError("Indicator scripts cannot use strategy functions")
         
         # Check for input usage in process function
@@ -205,7 +200,6 @@ class ScriptParser:
                     if isinstance(child, ast.Call):
                         if isinstance(child.func, ast.Attribute):
                             if isinstance(child.func.value, ast.Name) and child.func.value.id == "input":
-                                from script_engine.exceptions.parsing_specific import InvalidInputUsageError
                                 raise InvalidInputUsageError("Input functions cannot be used inside process()")
 
         # Check for variable assignments at module level (outside setup & process)
@@ -224,10 +218,8 @@ class ScriptParser:
                   and isinstance(node.targets[0], ast.Name)
                   and node.targets[0].id == 'export'}
         if len(exports) > 1:
-            from script_engine.exceptions.parsing_specific import MultipleExportsError
             raise MultipleExportsError("Library script must have exactly one export")
         elif len(exports) < 1:
-            from script_engine.exceptions.parsing_specific import NoExportsError
             raise NoExportsError("Library script must have at least one export")
 
         # Check for reserved variable names in dictionary exports
@@ -245,7 +237,6 @@ class ScriptParser:
             if isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Attribute):
                     if isinstance(node.func.value, ast.Name) and node.func.value.id == "strategy":
-                        from script_engine.exceptions.parsing_specific import StrategyFunctionInIndicatorError
                         raise StrategyFunctionInIndicatorError("Library scripts cannot use strategy functions")
 
     def _is_reserved_variable_name(self, var_name: str) -> bool:

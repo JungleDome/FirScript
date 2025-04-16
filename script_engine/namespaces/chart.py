@@ -1,5 +1,7 @@
 from typing import Any, List, override
 
+import numpy as np
+
 from ..namespaces.base import BaseNamespace
 
 class ChartNamespace(BaseNamespace):
@@ -13,7 +15,7 @@ class ChartNamespace(BaseNamespace):
     def plot(self, series: Any, title: str = '', color: str = '#000000', linewidth: int = 1) -> None:
         """Plot a series on the chart."""
         
-        if isinstance(series, (float, int)) or series is None:
+        if isinstance(series, (float, int, np.number)) or series is None:
             data = {
                 'bar': self.shared.get('data',{}).get('current'),
                 'value': series

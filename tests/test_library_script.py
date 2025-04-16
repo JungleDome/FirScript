@@ -1,6 +1,6 @@
 import pytest
 from script_engine.script import ScriptType
-from script_engine.exceptions.parsing_specific import MissingScriptTypeError, ConflictingScriptTypeError, NoExportsError
+from script_engine.exceptions import MissingScriptTypeError, ConflictingScriptTypeError, NoExportsError
 import pandas as pd
 
 def test_parse_valid_library_script(parser):

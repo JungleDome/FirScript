@@ -1,5 +1,5 @@
 import pytest
-from script_engine.exceptions.parsing_specific import NoExportsError, ReservedVariableNameError
+from script_engine.exceptions import NoExportsError, ReservedVariableNameError
 from script_engine.script import ScriptType
 
 def test_library_with_reserved_variable_name_export(parser):
