@@ -6,6 +6,7 @@ from ..namespaces.base import BaseNamespace
 
 class TANamespace(BaseNamespace):
     """Technical Analysis namespace implementation."""
+    key = 'ta'
 
     @staticmethod
     def sma(series: pd.Series, length: int) -> float:
@@ -37,3 +38,17 @@ class TANamespace(BaseNamespace):
             period=length,
             input_values=ohlcv_list
         )
+        
+    @staticmethod
+    def crossover(series1: pd.Series, series2: pd.Series) -> bool:
+        """Check if series1 crosses above series2."""
+        if series1[-1] is None or series2[-1] is None or series1[-2] is None or series2[-2] is None:
+            return False
+        return series1[-1] > series2[-1] and series1[-2] <= series2[-2]
+    
+    @staticmethod
+    def crossunder(series1: pd.Series, series2: pd.Series) -> bool:
+        """Check if series1 crosses below series2."""
+        if series1[-1] is None or series2[-1] is None or series1[-2] is None or series2[-2] is None:
+            return False
+        return series1[-1] < series2[-1] and series1[-2] >= series2[-2]

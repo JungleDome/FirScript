@@ -3,8 +3,11 @@ from ..namespaces.base import BaseNamespace
 
 class InputNamespace(BaseNamespace):
     """Handles script input parameters."""
+    key = 'input'
     
-    def __init__(self, inputs: Dict[str, Any]):
+    def __init__(self, shared: dict[str, Any], inputs: Dict[str, Any]):
+        super().__init__(shared)
+        
         self._inputs = inputs
 
     def int(self, name: str, default: int, **kwargs) -> int:

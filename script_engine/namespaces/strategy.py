@@ -4,8 +4,11 @@ from ..namespaces.base import BaseNamespace
 
 class StrategyNamespace(BaseNamespace):
     """Handles strategy order management and position tracking."""
+    key = 'strategy'
 
-    def __init__(self):
+    def __init__(self, shared: dict[str, Any]):
+        super().__init__(shared)
+        
         self._orders = []
         self._position = None
 

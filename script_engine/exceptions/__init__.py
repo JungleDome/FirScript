@@ -1,14 +1,21 @@
 """Script engine exceptions package."""
 
 from .base import ScriptEngineError
-from .parsing import ScriptParsingError
-from .parsing_specific import (
+from .parsing import (
+    ScriptParsingError,
     CircularImportError,
     InvalidInputUsageError,
     ReservedVariableNameError,
-    ScriptValidationError
+    ScriptValidationError,
+    ConflictingScriptTypeError,
+    MissingScriptTypeError,
+    MissingRequiredFunctionsError,
+    MultipleExportsError,
+    StrategyFunctionInIndicatorError,
+    StrategyGlobalVariableError,
+    NoExportsError,
 )
-from .runtime import ScriptRuntimeError, NamespaceError, ScriptNotFoundError
+from .runtime import ScriptRuntimeError, ScriptCompilationError, ScriptNotFoundError, EntrypointNotFoundError
 
 __all__ = [
     'ScriptEngineError',
@@ -18,6 +25,14 @@ __all__ = [
     'ReservedVariableNameError',
     'ScriptValidationError',
     'ScriptRuntimeError',
-    'NamespaceError',
-    'ScriptNotFoundError'
+    'ScriptCompilationError',
+    'ScriptNotFoundError',
+    'EntrypointNotFoundError',
+    'ConflictingScriptTypeError',
+    'MissingScriptTypeError',
+    'MissingRequiredFunctionsError',
+    'MultipleExportsError',
+    'StrategyFunctionInIndicatorError',
+    'StrategyGlobalVariableError',
+    'NoExportsError',
 ]

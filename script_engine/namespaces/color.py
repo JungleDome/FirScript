@@ -1,10 +1,14 @@
+from typing import Any
 from ..namespaces.base import BaseNamespace
 
 
 class ColorNamespace(BaseNamespace):
     """Provides color constants and utilities."""
+    key = 'color'
     
-    def __init__(self):
+    def __init__(self, shared: dict[str, Any]):
+        super().__init__(shared)
+        
         self._colors = {
             'red': '#FF0000',
             'green': '#00FF00',
