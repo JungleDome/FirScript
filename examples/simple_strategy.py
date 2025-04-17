@@ -26,11 +26,11 @@ def process():
     chart.plot(slow_ma[-1], color=color.red, title="Slow MA")
     
     # Trading logic - MA crossover
-    if ta.crossover(fast_ma,slow_ma) and last_position != 'long':
+    if ta.crossover(fast_ma,slow_ma):
         strategy.long()
         last_position = 'long'
         trade_count += 1
-    elif ta.crossunder(fast_ma,slow_ma) and last_position != 'short':
+    elif ta.crossunder(fast_ma,slow_ma):
         strategy.short()
         last_position = 'short'
         trade_count += 1
