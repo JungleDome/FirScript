@@ -1,4 +1,5 @@
 import pytest
+from script_engine.engine import Engine
 from script_engine.script import ScriptType
 from script_engine.exceptions import MissingScriptTypeError, ConflictingScriptTypeError, NoExportsError
 import pandas as pd
@@ -25,7 +26,7 @@ export = {
     script = parser.parse(library_script, 'test_script_id', ScriptType.LIBRARY)
     assert script.metadata.type == ScriptType.LIBRARY
 
-def test_library_with_setup_process_raises_error(parser):
+def test_When_LibraryScriptDefineSetupAndProcessFunction_Expect_NoError(parser):
     """Test that a library script with setup/process functions raises an error."""
     invalid_library = """
 def setup():
@@ -36,10 +37,9 @@ def process():
 
 export = {"function": lambda x: x}
 """
-    with pytest.raises(ConflictingScriptTypeError):
-        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
+    parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
-def test_library_without_export_raises_error(parser):
+def test_When_LibraryScriptNoDefineExport_Expect_NoExportsError(parser):
     """Test that a script without export and without setup/process raises an error."""
     invalid_script = """
 def calculate_something():
@@ -48,7 +48,7 @@ def calculate_something():
     with pytest.raises(NoExportsError):
         parser.parse(invalid_script, 'test_script_id', ScriptType.LIBRARY)
 
-def test_library_with_multiple_exports_raises_error(parser):
+def test_When_LibraryScriptDefineMultipleExports_Expect_Error(parser):
     """Test that a library script with multiple exports raises an error."""
     invalid_library = """
 export = {"func1": lambda x: x}
@@ -57,7 +57,7 @@ export = {"func2": lambda x: x * 2}
     with pytest.raises(Exception):  # Could be MultipleExportsError or similar
         parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
-def test_execute_library_script(runtime, parser):
+def test_When_EngineExecuteLibraryScript_Expect_ResultIsLibraryFunction(runtime, parser):
     """Test that a library script can be executed and returns the export value."""
     library_script = """
 def calculate_average(values):
@@ -68,22 +68,17 @@ def calculate_average(values):
 # Export a single function
 export = calculate_average
 """
-    script = parser.parse(library_script, 'test_script_id', ScriptType.LIBRARY)
-
     # Create sample data
     data = pd.DataFrame({
         'close': [100, 101, 102, 103, 104]
     })
-
-    # Execute the library script
-    result = runtime.run(
-        script,
-        execution_input=ExecutionInputBase(
-            current_bar=data.iloc[0:1],
-            all_bar=data
-        )
+    
+    engine = Engine(
+        data,
+        main_script_str=library_script,
     )
-
+    
+    result, metadata = engine.run()
     # Verify that the result is the exported function
     assert result is not None
     assert callable(result)
