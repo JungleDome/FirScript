@@ -1,6 +1,6 @@
 # Scripting Conventions
 
-This document outlines the conventions for writing scripts for the TradePilot ScriptEngine.
+This document outlines the conventions for writing scripts for the FirScript ScriptEngine.
 
 ## General Rules
 
@@ -41,7 +41,7 @@ This document outlines the conventions for writing scripts for the TradePilot Sc
        # Your trading logic here
    ```
 
-3. **Inputs**:
+4. **Inputs**:
    - Declare inputs using `input.<type>(name, default)` inside the `setup()` function
    - Inputs are read-only after declaration
    - Access inputs directly by their declared name
