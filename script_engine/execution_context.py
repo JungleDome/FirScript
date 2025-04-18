@@ -1,3 +1,4 @@
+import traceback
 from types import SimpleNamespace
 from typing import Any, Dict
 from script_engine.exceptions.runtime import ScriptCompilationError, ScriptRuntimeError
@@ -28,14 +29,28 @@ class ScriptContext:
             if "setup" in self.locals:
                 self.locals["setup"]()
         except Exception as e:
-            raise ScriptRuntimeError(f"Error in setup function: {e}")
+            # Extract the last traceback entry with useful info
+            last_tb = traceback.extract_tb(e.__traceback__)[-1]
+            raise ScriptRuntimeError(f"Error in setup function: {e}", 
+                                     file=self.name, 
+                                     exception_msg=str(e),
+                                     line_no=last_tb.lineno,
+                                     line_str=last_tb.line,
+                                     col_no=last_tb.colno)
 
     def run_process(self):
         try:
             if "process" in self.locals:
                 return self.locals["process"]()
         except Exception as e:
-            raise ScriptRuntimeError(f"Error in process function: {e}")
+            # Extract the last traceback entry with useful info
+            last_tb = traceback.extract_tb(e.__traceback__)[-1]
+            raise ScriptRuntimeError(f"Error in process function: {e}", 
+                                     file=self.name, 
+                                     exception_msg=str(e),
+                                     line_no=last_tb.lineno,
+                                     line_str=last_tb.line,
+                                     col_no=last_tb.colno)
         
     def get_export(self):
         try:
@@ -45,7 +60,14 @@ class ScriptContext:
                 return SimpleNamespace(**export_value)
             return export_value
         except Exception as e:
-            raise ScriptRuntimeError(f"Error in export: {e}")
+            # Extract the last traceback entry with useful info
+            last_tb = traceback.extract_tb(e.__traceback__)[-1]
+            raise ScriptRuntimeError(f"Error in export: {e}", 
+                                     file=self.name, 
+                                     exception_msg=str(e),
+                                     line_no=last_tb.lineno,
+                                     line_str=last_tb.line,
+                                     col_no=last_tb.colno)
 
     def generate_outputs(self) -> Dict[str, Any]:
         """
