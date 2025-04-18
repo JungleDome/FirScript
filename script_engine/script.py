@@ -15,7 +15,6 @@ class ScriptMetadata:
     id: str  # Usually the name/path provided during import/load
     name: str # Optional descriptive name from script (e.g., study(name="..."))
     type: ScriptType
-    inputs: Dict[str, Any] = field(default_factory=dict)
     exports: Set[str] = field(default_factory=set) # Variables intended for export
     imports: Dict[str, str] = field(default_factory=dict) # Alias -> script_id mapping
 

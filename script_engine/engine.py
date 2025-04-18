@@ -6,7 +6,7 @@ from script_engine.namespace_registry import NamespaceRegistry
 from script_engine.script import Script
 
 class Engine:
-    def __init__(self, data: pd.DataFrame, main_script_str: str = None, imported_script: dict[str, str] = {}, scripts: list[Script] = None, inputs_override: dict[str, Any] = None,  column_mapping: dict[str, str] = None):
+    def __init__(self, data: pd.DataFrame, main_script_str: str = None, import_scripts: dict[str, str] = {}, scripts: list[Script] = None, inputs_override: dict[str, Any] = None,  column_mapping: dict[str, str] = None):
         self.main_script_str = main_script_str
         
         if not isinstance(data, pd.DataFrame) or data.empty:
@@ -23,7 +23,7 @@ class Engine:
                 self.importer.add_script(script=script)
         else:
             self.importer.add_script('main', self.main_script_str, is_main=True)
-            for name, script_str in imported_script.items():
+            for name, script_str in import_scripts.items():
                 self.importer.add_script(name, script_str)
         self.registry.register('import_script', self.importer.import_script)
 

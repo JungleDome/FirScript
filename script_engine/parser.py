@@ -89,18 +89,12 @@ class ScriptParser:
 
     def _extract_metadata(self, tree: ast.AST, script_type: ScriptType, script_id: str) -> ScriptMetadata:
         """Extract metadata from the script."""
-        inputs = {}
         exports = set()
         # Dictionary to store custom imports: {alias: definition_id}
         custom_imports: Dict[str, str] = {}
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.Call):
-                if isinstance(node.func, ast.Attribute):
-                    if node.func.attr.startswith("input."):
-                        if node.args and isinstance(node.args[0], ast.Constant):
-                            inputs[node.args[0].value] = None
-            elif isinstance(node, ast.Assign):
+            if isinstance(node, ast.Assign):
                 # Detect custom import assignments like: my_sma = import_script('indicators/sma.py')
                 if isinstance(node.value, ast.Call) and \
                    isinstance(node.value.func, ast.Name) and \
@@ -134,7 +128,6 @@ class ScriptParser:
             id=script_id,
             name=script_id,
             type=script_type,
-            inputs=inputs,
             exports=exports,
             imports=custom_imports # Use the correct variable name
         )
