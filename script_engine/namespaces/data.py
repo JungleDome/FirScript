@@ -1,6 +1,19 @@
-from typing import Any
+from typing import Any, Optional
 import pandas as pd
 from script_engine.namespaces.base import BaseNamespace
+
+class HistoricalSeries:
+    def __init__(self, series):
+        self.series = series
+
+    def __getitem__(self, idx):
+        # Reverse index: 0 = last, 1 = second last, etc.
+        if idx < 0 or idx >= len(self.series):
+            return None
+        return self.series.iloc[-(idx + 1)]
+
+    def __repr__(self):
+        return str(self[0])
 
 class DataNamespace(BaseNamespace):
     key = 'data'
@@ -27,7 +40,7 @@ class DataNamespace(BaseNamespace):
         if not self.column_mapping:
             return df
         return df.rename(columns=self.column_mapping)
-
+    
     @property
     def current(self):
         return self.__current_bar
@@ -39,3 +52,41 @@ class DataNamespace(BaseNamespace):
     @property
     def raw_all(self):
         return self.__raw_all
+    
+    # This provides pinescript like access pattern.
+    # - data.close will return the last item, data.close[1] will return the second last item
+    @property
+    def timestamp(self):
+        if 'timestamp' not in self.__all.columns:
+            return None
+        return HistoricalSeries(self.__all['timestamp'])
+    
+    @property
+    def open(self):
+        if 'open' not in self.__all.columns:
+            return None 
+        return HistoricalSeries(self.__all['open'])
+    
+    @property
+    def close(self):
+        if 'close' not in self.__all.columns:
+            return None
+        return HistoricalSeries(self.__all['close'])
+    
+    @property
+    def high(self):
+        if 'high' not in self.__all.columns:
+            return None
+        return HistoricalSeries(self.__all['high'])
+    
+    @property
+    def low(self):
+        if 'low' not in self.__all.columns:
+            return None
+        return HistoricalSeries(self.__all['low'])
+    
+    @property
+    def volume(self):
+        if 'volume' not in self.__all.columns:
+            return None
+        return HistoricalSeries(self.__all['volume'])

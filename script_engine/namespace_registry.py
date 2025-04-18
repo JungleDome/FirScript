@@ -7,6 +7,7 @@ from script_engine.namespaces.chart import ChartNamespace
 from script_engine.namespaces.color import ColorNamespace
 from script_engine.namespaces.data import DataNamespace
 from script_engine.namespaces.input import InputNamespace
+from script_engine.namespaces.log import LogNamespace
 from script_engine.namespaces.strategy import StrategyNamespace
 from script_engine.namespaces.ta import TANamespace
 
@@ -30,7 +31,8 @@ class NamespaceRegistry:
         self.register("color", ColorNamespace(self.shared))
         self.register("strategy", StrategyNamespace(self.shared))
         self.register("data", DataNamespace(self.shared, column_mapping))
-        logger.debug("Default namespaces registered.")
+        self.register("log", LogNamespace(self.shared))        
+        logger.debug("Default namespaces registered.")        
 
     def get(self, name: str) -> BaseNamespace:
         return self.namespaces[name]

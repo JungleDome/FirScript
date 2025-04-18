@@ -1,3 +1,4 @@
+from typing import Any
 import pandas as pd
 from script_engine.exceptions.base import ScriptEngineError
 from script_engine.importer import ScriptImporter
@@ -5,7 +6,7 @@ from script_engine.namespace_registry import NamespaceRegistry
 from script_engine.script import Script
 
 class Engine:
-    def __init__(self, data: pd.DataFrame, main_script_str: str = None, imported_script: dict[str, str] = {}, scripts: list[Script] = None):
+    def __init__(self, data: pd.DataFrame, main_script_str: str = None, imported_script: dict[str, str] = {}, scripts: list[Script] = None, inputs_override: dict[str, Any] = None,  column_mapping: dict[str, str] = None):
         self.main_script_str = main_script_str
         
         if not isinstance(data, pd.DataFrame) or data.empty:
@@ -13,7 +14,7 @@ class Engine:
         self.data = data
         
         self.registry = NamespaceRegistry()
-        self.registry.register_default_namespaces({})
+        self.registry.register_default_namespaces(inputs_override, column_mapping=column_mapping)
 
         self.importer = ScriptImporter(self.registry)
         
