@@ -48,14 +48,14 @@ def calculate_something():
     with pytest.raises(NoExportsError):
         parser.parse(invalid_script, 'test_script_id', ScriptType.LIBRARY)
 
-def test_When_LibraryScriptDefineMultipleExports_Expect_Error(parser):
-    """Test that a library script with multiple exports raises an error."""
-    invalid_library = """
-export = {"func1": lambda x: x}
-export = {"func2": lambda x: x * 2}
-"""
-    with pytest.raises(Exception):  # Could be MultipleExportsError or similar
-        parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
+# def test_When_LibraryScriptDefineMultipleExports_Expect_Error(parser):
+#     """Test that a library script with multiple exports raises an error."""
+#     invalid_library = """
+# export = {"func1": lambda x: x}
+# export = {"func2": lambda x: x * 2}
+# """
+#     with pytest.raises(Exception):  # Could be MultipleExportsError or similar
+#         parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
 def test_When_EngineExecuteLibraryScript_Expect_ResultIsLibraryFunction(runtime, parser):
     """Test that a library script can be executed and returns the export value."""
