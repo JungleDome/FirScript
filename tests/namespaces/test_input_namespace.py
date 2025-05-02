@@ -1,8 +1,8 @@
 from typing import Any, override
 import pandas as pd
 
-from script_engine.engine import Engine
-from script_engine.namespaces.base import BaseNamespace
+from firscript.engine import Engine
+from firscript.namespaces.base import BaseNamespace
 
 
 def test_When_CreateInputInSetup_Expect_ShowInputInMetadata():

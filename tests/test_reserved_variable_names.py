@@ -1,6 +1,6 @@
 import pytest
-from script_engine.exceptions import NoExportsError, ReservedVariableNameError
-from script_engine.script import ScriptType
+from firscript.exceptions import NoExportsError, ReservedVariableNameError
+from firscript.script import ScriptType
 
 def test_library_with_reserved_variable_name_export(parser):
     """Test that a library script with a reserved variable name export raises an error."""

@@ -1,9 +1,9 @@
 import traceback
 from types import SimpleNamespace
 from typing import Any, Dict
-from script_engine.exceptions.runtime import ScriptCompilationError, ScriptRuntimeError
-from script_engine.namespace_registry import NamespaceRegistry
-from script_engine.namespaces.base import BaseNamespace
+from firscript.exceptions.runtime import ScriptCompilationError, ScriptRuntimeError
+from firscript.namespace_registry import NamespaceRegistry
+from firscript.namespaces.base import BaseNamespace
 
 
 class ScriptContext:

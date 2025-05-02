@@ -2,14 +2,14 @@ import logging
 from types import FunctionType
 from typing import Any, Callable, Dict, Optional
 
-from script_engine.namespaces.base import BaseNamespace
-from script_engine.namespaces.chart import ChartNamespace
-from script_engine.namespaces.color import ColorNamespace
-from script_engine.namespaces.data import DataNamespace
-from script_engine.namespaces.input import InputNamespace
-from script_engine.namespaces.log import LogNamespace
-from script_engine.namespaces.strategy import StrategyNamespace
-from script_engine.namespaces.ta import TANamespace
+from firscript.namespaces.base import BaseNamespace
+from firscript.namespaces.chart import ChartNamespace
+from firscript.namespaces.color import ColorNamespace
+from firscript.namespaces.data import DataNamespace
+from firscript.namespaces.input import InputNamespace
+from firscript.namespaces.log import LogNamespace
+from firscript.namespaces.strategy import StrategyNamespace
+from firscript.namespaces.ta import TANamespace
 
 logger = logging.getLogger(__name__)
 

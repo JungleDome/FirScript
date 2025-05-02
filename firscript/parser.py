@@ -2,8 +2,8 @@ import ast
 import re
 from typing import Any, Dict, List, Set, Tuple
 
-from script_engine.exceptions import StrategyGlobalVariableError, ReservedVariableNameError
-from script_engine.exceptions.parsing import ConflictingScriptTypeError, InvalidInputUsageError, MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, StrategyFunctionInIndicatorError
+from firscript.exceptions import StrategyGlobalVariableError, ReservedVariableNameError
+from firscript.exceptions.parsing import ConflictingScriptTypeError, InvalidInputUsageError, MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, StrategyFunctionInIndicatorError
 from .script import Script, ScriptType, ScriptMetadata
 
 class ScriptParser:
@@ -29,7 +29,7 @@ class ScriptParser:
             return self._create_script(source, metadata)
 
         except SyntaxError as e:
-            from script_engine.exceptions.parsing import ScriptParsingError
+            from firscript.exceptions.parsing import ScriptParsingError
             raise ScriptParsingError(f"Invalid script syntax: {str(e)}")
 
     def _determine_script_type(self, tree: ast.AST) -> ScriptType:

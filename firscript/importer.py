@@ -1,9 +1,9 @@
-from script_engine.exceptions.parsing import CircularImportError
-from script_engine.exceptions.runtime import EntrypointNotFoundError, ScriptNotFoundError
-from script_engine.namespace_registry import NamespaceRegistry
-from script_engine.parser import ScriptParser
-from script_engine.script import Script
-from script_engine.execution_context import ScriptContext
+from firscript.exceptions.parsing import CircularImportError
+from firscript.exceptions.runtime import EntrypointNotFoundError, ScriptNotFoundError
+from firscript.namespace_registry import NamespaceRegistry
+from firscript.parser import ScriptParser
+from firscript.script import Script
+from firscript.execution_context import ScriptContext
 
 class ScriptImporter:
     def __init__(self, registry: NamespaceRegistry):

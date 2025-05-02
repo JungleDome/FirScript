@@ -1,9 +1,9 @@
 from typing import Any
 import pandas as pd
-from script_engine.exceptions.base import ScriptEngineError
-from script_engine.importer import ScriptImporter
-from script_engine.namespace_registry import NamespaceRegistry
-from script_engine.script import Script
+from firscript.exceptions.base import ScriptEngineError
+from firscript.importer import ScriptImporter
+from firscript.namespace_registry import NamespaceRegistry
+from firscript.script import Script
 
 class Engine:
     def __init__(self, data: pd.DataFrame, main_script_str: str = None, import_scripts: dict[str, str] = {}, scripts: list[Script] = None, inputs_override: dict[str, Any] = None,  column_mapping: dict[str, str] = None):

@@ -1,6 +1,6 @@
 import pytest
-from script_engine.exceptions import MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, InvalidInputUsageError, StrategyFunctionInIndicatorError, ScriptParsingError
-from script_engine.script import ScriptType
+from firscript.exceptions import MissingRequiredFunctionsError, MissingScriptTypeError, MultipleExportsError, NoExportsError, InvalidInputUsageError, StrategyFunctionInIndicatorError, ScriptParsingError
+from firscript.script import ScriptType
 
 def test_parse_valid_strategy(parser):
     script = parser.parse('''

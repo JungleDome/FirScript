@@ -1,6 +1,6 @@
 from typing import Any, Optional
 import pandas as pd
-from script_engine.namespaces.base import BaseNamespace
+from firscript.namespaces.base import BaseNamespace
 
 class HistoricalSeries:
     def __init__(self, series):

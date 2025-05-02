@@ -3,13 +3,13 @@ import pandas as pd
 import pytest
 import os
 
-from script_engine.namespaces.color import ColorNamespace 
-from script_engine.namespaces.chart import ChartNamespace
-from script_engine.namespaces.input import InputNamespace
-from script_engine.namespaces.strategy import StrategyNamespace
-from script_engine.namespaces.ta import TANamespace
-from script_engine.parser import ScriptParser
-from script_engine.script import ScriptType
+from firscript.namespaces.color import ColorNamespace 
+from firscript.namespaces.chart import ChartNamespace
+from firscript.namespaces.input import InputNamespace
+from firscript.namespaces.strategy import StrategyNamespace
+from firscript.namespaces.ta import TANamespace
+from firscript.parser import ScriptParser
+from firscript.script import ScriptType
 
 @pytest.fixture
 def parser():
