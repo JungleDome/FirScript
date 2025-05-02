@@ -2,11 +2,11 @@ from enum import Enum
 from typing import override
 import pandas as pd
 import random
-from script_engine.engine import Engine
-from script_engine.importer import ScriptImporter
-from script_engine.namespace_registry import NamespaceRegistry
-from script_engine.namespaces.base import BaseNamespace
-from script_engine.parser import ScriptParser
+from firscript.engine import Engine
+from firscript.importer import ScriptImporter
+from firscript.namespace_registry import NamespaceRegistry
+from firscript.namespaces.base import BaseNamespace
+from firscript.parser import ScriptParser
 
 
 # Define our own custom namespace

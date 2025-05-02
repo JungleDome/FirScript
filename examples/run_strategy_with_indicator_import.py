@@ -6,8 +6,8 @@ import sys
 import os
 import pandas as pd
 
-from script_engine.engine import Engine
-from script_engine.script import Script, ScriptMetadata, ScriptType
+from firscript.engine import Engine
+from firscript.script import Script, ScriptMetadata, ScriptType
 
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

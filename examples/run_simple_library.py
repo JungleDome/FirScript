@@ -3,7 +3,7 @@ Simple example demonstrating how to run a library script
 """
 import random
 import pandas as pd
-from script_engine.engine import Engine
+from firscript.engine import Engine
 
 def main():
     # Create sample price data
