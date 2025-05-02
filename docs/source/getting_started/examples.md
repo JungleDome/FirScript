@@ -5,7 +5,7 @@ This section provides examples of how to use the FirScript for various use cases
 ## Simple Strategy
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 import pandas as pd
 
 # Load your data
@@ -45,7 +45,7 @@ print(results)
 ## Simple Indicator
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 import pandas as pd
 
 # Load your data
@@ -85,7 +85,7 @@ print(chart_data)
 ## Using a Library
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 import pandas as pd
 
 # Load your data
@@ -158,7 +158,7 @@ print(results)
 FirScript allows you to extend its functionality with custom namespaces. Here's a simple example:
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 import pandas as pd
 
 # Define a custom namespace

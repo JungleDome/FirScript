@@ -1,8 +1,8 @@
 # import pytest
 # import pandas as pd
-# from script_engine.exceptions import MissingScriptTypeError, StrategyGlobalVariableError
-# from script_engine.exceptions.runtime import ScriptRuntimeError, ScriptCompilationError
-# from script_engine.script import ScriptType
+# from firscript.exceptions import MissingScriptTypeError, StrategyGlobalVariableError
+# from firscript.exceptions.runtime import ScriptRuntimeError, ScriptCompilationError
+# from firscript.script import ScriptType
 
 
 # def test_When_ExecuteValidIndicatorScript_Expect_ResultReturned(

@@ -204,8 +204,8 @@ Raised when no main script has been provided to the importer.
 When working with FirScript, it's important to handle exceptions appropriately. Here's an example of how to handle exceptions:
 
 ```python
-from script_engine import Engine
-from script_engine.exceptions import ScriptEngineError, ScriptParsingError, ScriptRuntimeError
+from firscript import Engine
+from firscript.exceptions import ScriptEngineError, ScriptParsingError, ScriptRuntimeError
 
 try:
     # Create an engine

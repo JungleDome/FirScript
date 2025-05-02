@@ -42,7 +42,7 @@ Runs the script on the provided data.
 
 ```python
 import pandas as pd
-from script_engine import Engine
+from firscript import Engine
 
 # Create sample data
 data = pd.DataFrame({

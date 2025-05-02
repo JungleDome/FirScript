@@ -44,7 +44,7 @@ Parses and validates a script source.
 
 **Example**:
 ```python
-from script_engine import ScriptParser, ScriptType
+from firscript import ScriptParser, ScriptType
 
 # Create a parser
 parser = ScriptParser()
@@ -191,7 +191,7 @@ The parser enforces several validation rules for scripts:
 ### Strategy Script
 
 ```python
-from script_engine import ScriptParser
+from firscript import ScriptParser
 
 parser = ScriptParser()
 
@@ -222,7 +222,7 @@ print(f"Script type: {strategy_script.metadata.type}")  # Output: Script type: S
 ### Indicator Script
 
 ```python
-from script_engine import ScriptParser
+from firscript import ScriptParser
 
 parser = ScriptParser()
 
@@ -246,7 +246,7 @@ print(f"Script type: {indicator_script.metadata.type}")  # Output: Script type: 
 ### Library Script
 
 ```python
-from script_engine import ScriptParser
+from firscript import ScriptParser
 
 parser = ScriptParser()
 

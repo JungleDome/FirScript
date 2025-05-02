@@ -103,7 +103,7 @@ Additionally, the documentation will be automatically built and hosted on [ReadT
 
 To publish a new version:
 
-1. Update the version in `script_engine/version.py`
+1. Update the version in `firscript/version.py`
 2. Create a new release on GitHub with a tag matching your version (e.g., `v0.1.0`)
 3. GitHub Actions will automatically build and publish to PyPI
 

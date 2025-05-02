@@ -31,8 +31,8 @@ pip install -e .
 To verify that the installation was successful, you can run:
 
 ```python
-import script_engine
-print(script_engine.__version__)
+import firscript
+print(firscript.__version__)
 ```
 
 This should print the current version of the FirScript.

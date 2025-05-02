@@ -60,7 +60,7 @@ Represents a parsed script with its source code and metadata.
 ### Example Usage
 
 ```python
-from script_engine import ScriptParser, ScriptType
+from firscript import ScriptParser, ScriptType
 
 # Create a parser
 parser = ScriptParser()
@@ -91,7 +91,7 @@ Scripts are typically created by the `ScriptParser` and then passed to the `Engi
 ### Creating Scripts Manually
 
 ```python
-from script_engine import Script, ScriptMetadata, ScriptType
+from firscript import Script, ScriptMetadata, ScriptType
 
 # Create script metadata
 metadata = ScriptMetadata(
@@ -112,7 +112,7 @@ script = Script(
 ### Using Scripts with the Engine
 
 ```python
-from script_engine import Engine, Script
+from firscript import Engine, Script
 
 # Create an engine with pre-parsed scripts
 engine = Engine(data, scripts=[script1, script2])

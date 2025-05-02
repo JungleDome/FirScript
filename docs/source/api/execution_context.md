@@ -136,8 +136,8 @@ The typical flow of script execution is:
 ## Example Usage
 
 ```python
-from script_engine import ScriptContext
-from script_engine.namespace_registry import NamespaceRegistry
+from firscript import ScriptContext
+from firscript.namespace_registry import NamespaceRegistry
 
 # Create a namespace registry
 registry = NamespaceRegistry()
@@ -217,7 +217,7 @@ These measures help prevent scripts from performing harmful actions or accessing
 The `ScriptContext` class is used by the `ScriptImporter` to execute imported scripts:
 
 ```python
-from script_engine.importer import ScriptImporter
+from firscript.importer import ScriptImporter
 
 # Create an importer
 importer = ScriptImporter(registry)

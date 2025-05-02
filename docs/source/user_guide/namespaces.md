@@ -118,7 +118,7 @@ Custom namespaces can:
 To create a custom namespace, you need to inherit from the `BaseNamespace` class and implement your desired functionality:
 
 ```python
-from script_engine.namespaces.base import BaseNamespace
+from firscript.namespaces.base import BaseNamespace
 from typing import Any, override
 
 class SignalsNamespace(BaseNamespace):
@@ -159,7 +159,7 @@ class SignalsNamespace(BaseNamespace):
 Once you've created a custom namespace, you need to register it with the `Engine`:
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 import pandas as pd
 
 # Create data
@@ -258,7 +258,7 @@ When working with namespaces, follow these best practices:
 Here's a more complex example of a custom namespace that provides additional technical indicators:
 
 ```python
-from script_engine.namespaces.base import BaseNamespace
+from firscript.namespaces.base import BaseNamespace
 import pandas as pd
 import numpy as np
 from typing import Any, List, Tuple, override

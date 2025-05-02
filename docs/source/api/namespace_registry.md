@@ -150,7 +150,7 @@ The `BaseNamespace` class is the base class for all namespaces in FirScript.
 ### Example: Custom Namespace
 
 ```python
-from script_engine.namespaces.base import BaseNamespace
+from firscript.namespaces.base import BaseNamespace
 from typing import Any, override
 
 class SignalsNamespace(BaseNamespace):
@@ -181,7 +181,7 @@ class SignalsNamespace(BaseNamespace):
 ### Registering Custom Namespaces
 
 ```python
-from script_engine import Engine, NamespaceRegistry
+from firscript import Engine, NamespaceRegistry
 import pandas as pd
 
 # Create data

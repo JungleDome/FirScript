@@ -1,4 +1,4 @@
-# Proposed rewrite for script_engine/script.py
+# Proposed rewrite for firscript/script.py
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, Set, Optional

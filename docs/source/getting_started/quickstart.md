@@ -7,7 +7,7 @@ This guide will help you get started with FirScript by walking through a simple 
 Here's a simple example of how to use the FirScript:
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 import pandas as pd
 import numpy as np
 

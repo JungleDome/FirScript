@@ -46,7 +46,7 @@ dependencies = [
 packages = {find = {exclude = ["tests*", "examples*"]}}
 
 [tool.setuptools.dynamic]
-version = {attr = "script_engine.version.__version__"}
+version = {attr = "firscript.version.__version__"}
 
 [tool.black]
 line-length = 88

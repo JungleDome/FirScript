@@ -292,7 +292,7 @@ The log namespace generates output containing:
 You can create custom namespaces to extend FirScript's functionality. Here's an example of a custom namespace:
 
 ```python
-from script_engine.namespaces.base import BaseNamespace
+from firscript.namespaces.base import BaseNamespace
 from typing import Any, override
 
 class SignalsNamespace(BaseNamespace):
@@ -325,7 +325,7 @@ To implement and apply a custom namespace in the script.
 Method 1 (__Recommended__): Register it with the `Engine`:
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 
 # Create engine with custom namespace
 engine = Engine(
@@ -343,7 +343,7 @@ results = engine.run()
 Method 2: Register it with the `NamespaceRegistry`:
 
 ```python
-from script_engine import Engine, NamespaceRegistry
+from firscript import Engine, NamespaceRegistry
 
 # Create a namespace registry
 registry = NamespaceRegistry()

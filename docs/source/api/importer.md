@@ -130,7 +130,7 @@ The `ScriptImporter` detects circular imports by maintaining an import stack. Wh
 ## Example Usage
 
 ```python
-from script_engine import ScriptImporter, NamespaceRegistry
+from firscript import ScriptImporter, NamespaceRegistry
 
 # Create a namespace registry
 registry = NamespaceRegistry()
@@ -175,7 +175,7 @@ metadata = context.generate_metadatas()
 The `ScriptImporter` is used by the `Engine` class to manage script imports:
 
 ```python
-from script_engine import Engine
+from firscript import Engine
 
 # Create an engine with imports
 engine = Engine(
