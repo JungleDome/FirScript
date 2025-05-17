@@ -1,11 +1,12 @@
+from dataclasses import dataclass
 from typing import Any, Dict, override
 from ..namespaces.base import BaseNamespace
 
+@dataclass
 class InputMetadata:
-    def __init__(self, name: str, default: Any, type: str):
-        self.name = name
-        self.default = default
-        self.type = type
+    name: str
+    default: Any
+    type: str
 
 class InputNamespace(BaseNamespace):
     """Handles script input parameters."""
