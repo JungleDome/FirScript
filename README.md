@@ -36,7 +36,7 @@ FirScript gives you a flexible core to run strategy and indicator code, manage d
 ### 📦 Installation
 
 ```bash
-pip install FirScript
+pip install FirScript talipp pandas numpy
 ```
 
 ### 🚀 Quick Start
