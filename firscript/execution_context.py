@@ -4,6 +4,7 @@ from typing import Any, Dict
 from firscript.exceptions.runtime import ScriptCompilationError, ScriptRuntimeError
 from firscript.namespace_registry import NamespaceRegistry
 from firscript.namespaces.base import BaseNamespace
+from RestrictedPython import compile_restricted, Guards, Eval, PrintCollector
 
 
 class ScriptContext:
@@ -19,7 +20,7 @@ class ScriptContext:
 
     def compile(self):
         try:
-            code = compile(self.script_str, self.name, "exec")
+            code = compile_restricted(self.script_str, self.name, "exec")
             exec(code, self.globals, self.locals)
         except Exception as e:
             raise ScriptCompilationError(f"Error compiling script: {e}")
@@ -31,8 +32,8 @@ class ScriptContext:
         except Exception as e:
             # Extract the last traceback entry with useful info
             last_tb = traceback.extract_tb(e.__traceback__)[-1]
-            raise ScriptRuntimeError(f"Error in setup function: {e}", 
-                                     file=self.name, 
+            raise ScriptRuntimeError(f"Error in setup function: {e}",
+                                     file=self.name,
                                      exception_msg=str(e),
                                      line_no=last_tb.lineno,
                                      line_str=last_tb.line,
@@ -45,13 +46,13 @@ class ScriptContext:
         except Exception as e:
             # Extract the last traceback entry with useful info
             last_tb = traceback.extract_tb(e.__traceback__)[-1]
-            raise ScriptRuntimeError(f"Error in process function: {e}", 
-                                     file=self.name, 
+            raise ScriptRuntimeError(f"Error in process function: {e}",
+                                     file=self.name,
                                      exception_msg=str(e),
                                      line_no=last_tb.lineno,
                                      line_str=last_tb.line,
                                      col_no=last_tb.colno)
-        
+
     def get_export(self):
         try:
             export_value = self.locals.get('export', None)
@@ -62,8 +63,8 @@ class ScriptContext:
         except Exception as e:
             # Extract the last traceback entry with useful info
             last_tb = traceback.extract_tb(e.__traceback__)[-1]
-            raise ScriptRuntimeError(f"Error in export: {e}", 
-                                     file=self.name, 
+            raise ScriptRuntimeError(f"Error in export: {e}",
+                                     file=self.name,
                                      exception_msg=str(e),
                                      line_no=last_tb.lineno,
                                      line_str=last_tb.line,
@@ -77,7 +78,7 @@ class ScriptContext:
             A dictionary mapping namespace names to their generated outputs.
         """
         return NamespaceRegistry.generate_outputs(self.namespaces)
-    
+
     def generate_metadatas(self) -> Dict[str, Any]:
         """
         Generate metadata outputs from all namespaces that support metadata generation.
@@ -86,12 +87,12 @@ class ScriptContext:
             A dictionary mapping namespace names to their generated metadatas.
         """
         return NamespaceRegistry.generate_metadatas(self.namespaces)
-    
+
     def _prepare_global_context(self):
         """Initialize the execution context with safe builtins."""
         # Basic builtins, can be customized further
         self.globals['__builtins__'] = {
-            'print': print,
+            'print': PrintCollector,
             'len': len,
             'range': range,
             'abs': abs,
@@ -107,7 +108,15 @@ class ScriptContext:
             'sum': sum,
             'max': max,
             'min': min,
-            'type': type
+            'type': type,
+            # guard attribute access
+            '_getattr_': Guards.safer_getattr,
+            # guard subscript (x[i]) access
+            '_getitem_': Eval.default_guarded_getitem,
+            # guard iteration (for x in y)
+            '_getiter_': Eval.default_guarded_getiter,
+            # guard unpacking of slices, tuple-assignment, etc.
+            '_iter_unpack_sequence_': Guards.guarded_iter_unpack_sequence,
             # Add other safe builtins as needed
         }
         # Prevent access to potentially harmful builtins
