@@ -13,12 +13,15 @@ def setup():
 def process():
     log.info(f"Close: {data.close}")
 """
-    
-    engine = Engine(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}), main_script_str=script)
-    result, metadata = engine.run()
+
+    engine = Engine()
+    engine.initialize(main_script=script)
+    result, metadata = engine.run(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}))
     assert len(result["log"]["info"]) == 10
     assert result["log"]["info"].pop() == "Close: 109"
-    
+
+
 def test_When_AccessHistoricalCloseVariable_Expect_ShowSecondLastClose():
     script = """
 def setup():
@@ -27,8 +30,10 @@ def setup():
 def process():
     log.info(f"Close: {data.close[1]}")
 """
-    
-    engine = Engine(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}), main_script_str=script)
-    result, metadata = engine.run()
+
+    engine = Engine()
+    engine.initialize(main_script=script)
+    result, metadata = engine.run(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}))
     assert len(result["log"]["info"]) == 10
     assert result["log"]["info"].pop() == "Close: 108"

@@ -5,6 +5,7 @@ import random
 import pandas as pd
 from firscript.engine import Engine
 
+
 def main():
     # Create sample price data
     data = pd.DataFrame({
@@ -22,12 +23,14 @@ def main():
         strategy_script = f.read()
 
     # Initialize engine
-    engine = Engine(data, main_script_str=strategy_script)
-    
+    engine = Engine()
+    engine.initialize(main_script=strategy_script)
+
     # Run the strategy
-    result = engine.run()
+    result = engine.run(data)
     print("\nStrategy execution completed:")
     print(f"Result: {result}")
+
 
 if __name__ == "__main__":
     main()

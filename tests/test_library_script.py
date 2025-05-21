@@ -4,6 +4,7 @@ from firscript.script import ScriptType
 from firscript.exceptions import MissingScriptTypeError, ConflictingScriptTypeError, NoExportsError
 import pandas as pd
 
+
 def test_parse_valid_library_script(parser):
     """Test that a valid library script is parsed correctly."""
     library_script = """
@@ -26,6 +27,7 @@ export = {
     script = parser.parse(library_script, 'test_script_id', ScriptType.LIBRARY)
     assert script.metadata.type == ScriptType.LIBRARY
 
+
 def test_When_LibraryScriptDefineSetupAndProcessFunction_Expect_NoError(parser):
     """Test that a library script with setup/process functions raises an error."""
     invalid_library = """
@@ -38,6 +40,7 @@ def process():
 export = {"function": lambda x: x}
 """
     parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
+
 
 def test_When_LibraryScriptNoDefineExport_Expect_NoExportsError(parser):
     """Test that a script without export and without setup/process raises an error."""
@@ -57,6 +60,7 @@ def calculate_something():
 #     with pytest.raises(Exception):  # Could be MultipleExportsError or similar
 #         parser.parse(invalid_library, 'test_script_id', ScriptType.LIBRARY)
 
+
 def test_When_EngineExecuteLibraryScript_Expect_ResultIsLibraryFunction(runtime, parser):
     """Test that a library script can be executed and returns the export value."""
     library_script = """
@@ -72,13 +76,11 @@ export = calculate_average
     data = pd.DataFrame({
         'close': [100, 101, 102, 103, 104]
     })
-    
-    engine = Engine(
-        data,
-        main_script_str=library_script,
-    )
-    
-    result, metadata = engine.run()
+
+    engine = Engine()
+    engine.initialize(main_script=library_script)
+
+    result, metadata = engine.run(data)
     # Verify that the result is the exported function
     assert result is not None
     assert callable(result)

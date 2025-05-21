@@ -16,9 +16,11 @@ def setup():
 def process():
     pass
 """
-    
-    engine = Engine(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}), main_script_str=script)
-    result, metadata = engine.run()
+
+    engine = Engine()
+    engine.initialize(main_script=script)
+    result, metadata = engine.run(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}))
     assert len(metadata["input"]) == 4
     assert "Length" in metadata["input"]
     assert metadata["input"]["Length"].default == 10
@@ -33,6 +35,7 @@ def process():
     assert metadata["input"]["Active"].default == True
     assert metadata["input"]["Active"].type == "bool"
 
+
 def test_When_EngineOverrideInput_Expect_ShowValueOverrideInProcess():
     script = """
 def setup():
@@ -42,7 +45,9 @@ def setup():
 def process():
     log.info(f"Length: {length}")
 """
-    engine = Engine(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}), main_script_str=script, inputs_override={"Length": 20})
-    result, metadata = engine.run()
+    engine = Engine()
+    engine.initialize(main_script=script, inputs_override={"Length": 20})
+    result, metadata = engine.run(pd.DataFrame({"timestamp": pd.date_range("2023-01-01", periods=10), "close": [
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109]}))
     assert len(result["log"]["info"]) == 10
     assert result["log"]["info"].pop() == "Length: 20"

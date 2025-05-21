@@ -5,6 +5,7 @@ import random
 import pandas as pd
 from firscript.engine import Engine
 
+
 def main():
     # Create sample price data
     periods = 50
@@ -18,12 +19,14 @@ def main():
         indicator_script = f.read()
 
     # Initialize engine
-    engine = Engine(data, main_script_str=indicator_script)
-    
+    engine = Engine()
+    engine.initialize(main_script=indicator_script)
+
     # Run the indicator
-    result = engine.run()
+    result = engine.run(data)
     print("\nIndicator execution completed:")
     print(f"Final SMA value: {result}")
+
 
 if __name__ == "__main__":
     main()
